@@ -1,0 +1,16 @@
+[package]
+name = "aerro"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Cross-service gRPC error framework for Rust."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ae2rs/aerro"
+homepage = "https://github.com/ae2rs/aerro"
+documentation = "https://docs.rs/aerro"
+readme = "README.md"
+keywords = ["grpc", "tonic", "prost", "error", "trace"]
+categories = ["network-programming", "rust-patterns"]
+exclude = [".github/", "AGENTS.md", "target/"]
+
+[dependencies]
