@@ -1,6 +1,6 @@
 //! `#[aerro::handler]` adapter test.
 
-#![cfg(all(feature = "tonic", feature = "macro"))]
+#![cfg(feature = "macro")]
 
 use aerro::ServiceFailure;
 use aerro::StatusIntoResultExt;

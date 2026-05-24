@@ -2,7 +2,7 @@
 //! `Status.code()` and `Status.message()`. The aerro envelope in `details()`
 //! is opaque to it but the gRPC contract is preserved.
 
-#![cfg(all(feature = "tonic", feature = "macro"))]
+#![cfg(feature = "macro")]
 
 use aerro::IntoStatus;
 use aerro::wire::encode::EncodeOptions;

@@ -1,4 +1,4 @@
-#![cfg(all(feature = "tonic", feature = "macro"))]
+#![cfg(feature = "macro")]
 
 #[test]
 fn ui() {

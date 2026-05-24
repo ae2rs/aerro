@@ -1,7 +1,7 @@
 //! End-to-end test of `#[aerro::operation]` — verifies the derive produces
 //! a working `Aerro` impl that round-trips via the wire layer.
 
-#![cfg(all(feature = "tonic", feature = "macro"))]
+#![cfg(feature = "macro")]
 
 use aerro::{Aerro, Category, Exposure, IntoStatus, ServiceFailure, StatusIntoResultExt};
 use aerro::wire::encode::EncodeOptions;

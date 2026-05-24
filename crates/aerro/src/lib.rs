@@ -37,22 +37,15 @@ pub use traits::Aerro;
 #[cfg(feature = "macro")]
 pub use aerro_macros::{handler, operation};
 
-#[cfg(all(feature = "tonic", feature = "compat-json"))]
+#[cfg(feature = "compat-json")]
 pub mod compat_json;
-#[cfg(feature = "tonic")]
 pub mod ext;
-#[cfg(feature = "tonic")]
 pub mod tower;
-#[cfg(feature = "tonic")]
 pub mod wire;
 
-#[cfg(feature = "tonic")]
 pub use ext::{ResultIntoStatusExt, StatusIntoResultExt};
-#[cfg(feature = "tonic")]
 pub use traits::{IntoStatus, TryFromStatus};
-#[cfg(feature = "tonic")]
 pub use wire::encode::{EncodeOptions, encode};
-#[cfg(feature = "tonic")]
 pub use wire::decode::decode;
 
 #[cfg(test)]

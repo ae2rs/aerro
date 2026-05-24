@@ -1,4 +1,4 @@
-#![cfg(feature = "tonic")]
+
 #[test]
 fn envelope_roundtrips_via_prost() {
     use prost::Message;

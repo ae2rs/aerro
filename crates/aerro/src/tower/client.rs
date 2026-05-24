@@ -3,8 +3,8 @@
 //! See spec §11. The layer holds the caller identity. Automatic response-side
 //! frame appending will land in v1.1 once a body-trailer-rewriting interceptor
 //! is in place; for v1, callers append frames manually via
-//! [`StatusIntoResultExt::into_aerro`] or rely on the `#[aerro::handler]` macro
-//! on the calling side.
+//! `aerro::StatusIntoResultExt::into_aerro` or rely on the `#[aerro::handler]`
+//! macro on the calling side.
 
 #[derive(Debug, Copy, Clone)]
 pub struct ClientLayer {

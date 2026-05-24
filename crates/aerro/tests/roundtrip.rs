@@ -1,7 +1,7 @@
 //! Roundtrip integration test: typed error → wire → typed error, exercising
 //! all four categories and all three exposure tiers.
 
-#![cfg(all(feature = "tonic", feature = "macro"))]
+#![cfg(feature = "macro")]
 
 use aerro::{Aerro, Category, Exposure, IntoStatus, StatusIntoResultExt};
 use aerro::wire::encode::EncodeOptions;

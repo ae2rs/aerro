@@ -10,7 +10,7 @@
 //! We assert the *delta* between iterations is constant (no leak / per-call
 //! aerro alloc).
 
-#![cfg(all(feature = "tonic", feature = "macro"))]
+#![cfg(feature = "macro")]
 
 use aerro::tower::{ClientLayer, ServerLayer};
 use tower::{Service, ServiceBuilder};
