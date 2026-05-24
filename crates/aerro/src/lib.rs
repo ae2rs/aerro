@@ -38,12 +38,18 @@ pub use traits::Aerro;
 pub use aerro_macros::{handler, operation};
 
 #[cfg(feature = "tonic")]
-pub mod wire {
-    //! Wire envelope and prost-generated types.
-    pub mod raw {
-        include!(concat!(env!("OUT_DIR"), "/aerro.v1.rs"));
-    }
-}
+pub mod ext;
+#[cfg(feature = "tonic")]
+pub mod wire;
+
+#[cfg(feature = "tonic")]
+pub use ext::{ResultIntoStatusExt, StatusIntoResultExt};
+#[cfg(feature = "tonic")]
+pub use traits::{IntoStatus, TryFromStatus};
+#[cfg(feature = "tonic")]
+pub use wire::encode::{EncodeOptions, encode};
+#[cfg(feature = "tonic")]
+pub use wire::decode::decode;
 
 #[cfg(test)]
 mod tests {
