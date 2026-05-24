@@ -140,7 +140,7 @@ mod tests {
                 Err(crate::DecodeError::Missing)
             }
         }
-        let r = decode::<Other>(st).err().expect("type_id mismatch");
+        let r = decode::<Other>(st).expect_err("type_id mismatch");
         assert_eq!(r.type_id, "toy.boom");
         assert_eq!(r.downcast::<Boom>().unwrap().x, 5);
     }

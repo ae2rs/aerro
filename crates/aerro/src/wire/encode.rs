@@ -51,10 +51,10 @@ pub fn encode<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> Status 
     let env = raw::Envelope {
         category: to_proto(sf.inner.category()) as i32,
         type_id: Aerro::type_id(&sf.inner).to_string(),
-        trace_id: sf.trace.trace_id.to_vec().into(),
-        span_id: sf.trace.span_id.to_vec().into(),
+        trace_id: sf.trace.trace_id.to_vec(),
+        span_id: sf.trace.span_id.to_vec(),
         frames: wire_frames,
-        payload: payload.into(),
+        payload,
         version: ENVELOPE_VERSION,
     };
     let bytes = env.encode_to_vec();

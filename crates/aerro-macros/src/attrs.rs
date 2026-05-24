@@ -144,13 +144,17 @@ fn lit_str_of(expr: &Expr) -> Option<&str> {
     }
 }
 
-fn parse_variant_attr(attr: &Attribute) -> syn::Result<(Option<String>, Option<String>, Option<String>, Option<String>, bool)> {
-    // returns (category, code, exposure, error, from_catchall)
-    let mut category = None;
-    let mut code = None;
-    let mut exposure = None;
-    let mut error = None;
-    let mut from_catchall = false;
+#[derive(Default)]
+struct ParsedVariantAttr {
+    category: Option<String>,
+    code: Option<String>,
+    exposure: Option<String>,
+    error: Option<String>,
+    from_catchall: bool,
+}
+
+fn parse_variant_attr(attr: &Attribute) -> syn::Result<ParsedVariantAttr> {
+    let mut out = ParsedVariantAttr::default();
 
     attr.parse_nested_meta(|meta| {
         let key = meta
@@ -161,22 +165,22 @@ fn parse_variant_attr(attr: &Attribute) -> syn::Result<(Option<String>, Option<S
         match key.as_str() {
             "category" => {
                 let value: syn::LitStr = meta.value()?.parse()?;
-                category = Some(value.value());
+                out.category = Some(value.value());
             }
             "code" => {
                 let value: syn::LitStr = meta.value()?.parse()?;
-                code = Some(value.value());
+                out.code = Some(value.value());
             }
             "exposure" => {
                 let value: syn::LitStr = meta.value()?.parse()?;
-                exposure = Some(value.value());
+                out.exposure = Some(value.value());
             }
             "error" => {
                 let value: syn::LitStr = meta.value()?.parse()?;
-                error = Some(value.value());
+                out.error = Some(value.value());
             }
             "from" => {
-                from_catchall = true;
+                out.from_catchall = true;
             }
             other => {
                 return Err(meta.error(format!("unknown aerro attribute `{}`", other)));
@@ -185,7 +189,7 @@ fn parse_variant_attr(attr: &Attribute) -> syn::Result<(Option<String>, Option<S
         Ok(())
     })?;
 
-    Ok((category, code, exposure, error, from_catchall))
+    Ok(out)
 }
 
 fn collect_field_cfg(field: &Field) -> syn::Result<FieldCfg> {
@@ -236,21 +240,24 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
     }
     if aerro_attrs.len() > 1 {
         return Err(syn::Error::new_spanned(
-            &aerro_attrs[1].path(),
+            aerro_attrs[1].path(),
             "multiple `#[aerro(...)]` attributes on the same variant",
         ));
     }
-    let (cat_s, code_s, exp_s, err_s, from_catchall) = parse_variant_attr(aerro_attrs[0])?;
+    let parsed = parse_variant_attr(aerro_attrs[0])?;
 
     let category = CategoryAttr::from_str(
-        &cat_s.ok_or_else(|| syn::Error::new_spanned(v, "missing `category = \"...\"`"))?,
+        &parsed
+            .category
+            .ok_or_else(|| syn::Error::new_spanned(v, "missing `category = \"...\"`"))?,
         v.span(),
     )?;
-    let code_snake =
-        code_s.ok_or_else(|| syn::Error::new_spanned(v, "missing `code = \"...\"`"))?;
+    let code_snake = parsed
+        .code
+        .ok_or_else(|| syn::Error::new_spanned(v, "missing `code = \"...\"`"))?;
     let code_ident = Ident::new(&snake_to_pascal(&code_snake), v.ident.span());
 
-    let exposure = match exp_s {
+    let exposure = match parsed.exposure {
         Some(s) => Some(ExposureAttr::from_str(&s, v.span())?),
         None => None,
     };
@@ -276,8 +283,8 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
         category,
         code: code_ident,
         exposure,
-        error_fmt: err_s,
-        from_catchall,
+        error_fmt: parsed.error,
+        from_catchall: parsed.from_catchall,
         is_tuple,
         fields,
     })

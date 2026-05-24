@@ -5,10 +5,10 @@ fn envelope_roundtrips_via_prost() {
     let env = aerro::wire::raw::Envelope {
         category: aerro::wire::raw::Category::Business as i32,
         type_id: "create_user.email_taken".into(),
-        trace_id: vec![0xAA; 16].into(),
-        span_id: vec![0xBB; 8].into(),
+        trace_id: vec![0xAA; 16],
+        span_id: vec![0xBB; 8],
         frames: vec![],
-        payload: vec![1, 2, 3].into(),
+        payload: vec![1, 2, 3],
         version: 1,
     };
     let bytes = env.encode_to_vec();

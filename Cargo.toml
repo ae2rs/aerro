@@ -2,6 +2,12 @@
 resolver = "2"
 members = ["crates/aerro", "crates/aerro-macros"]
 
+[workspace.lints.clippy]
+# `tonic::Status` is 176 bytes; `RemoteError` is ~470. They are the central
+# Err types of an error library — boxing them would force an allocation per
+# Err arm for no real benefit. Opt out of this lint workspace-wide.
+result_large_err = "allow"
+
 [workspace.package]
 version = "0.2.0"
 edition = "2024"
