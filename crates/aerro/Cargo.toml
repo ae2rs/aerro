@@ -48,3 +48,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 dhat = { workspace = true }
 criterion = { workspace = true }
 trybuild = { workspace = true }
+
+[[bench]]
+name = "error_path"
+harness = false
