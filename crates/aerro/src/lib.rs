@@ -37,6 +37,8 @@ pub use traits::Aerro;
 #[cfg(feature = "macro")]
 pub use aerro_macros::{handler, operation};
 
+#[cfg(all(feature = "tonic", feature = "compat-json"))]
+pub mod compat_json;
 #[cfg(feature = "tonic")]
 pub mod ext;
 #[cfg(feature = "tonic")]
