@@ -28,8 +28,10 @@ pub trait Aerro: std::error::Error + Send + Sync + 'static {
         self.category().default_exposure()
     }
 
-    /// Encode the variant's payload into bincode bytes.
-    fn encode_payload(&self, buf: &mut Vec<u8>);
+    /// Encode the variant's payload into bincode bytes. `route` is the
+    /// exposure level of the destination; fields marked `#[aerro(redact)]`
+    /// are replaced with `Default::default()` whenever `route != Internal`.
+    fn encode_payload(&self, route: Exposure, buf: &mut Vec<u8>);
 
     /// Decode a typed variant from a `type_id` + bincode bytes.
     fn decode_payload(type_id: &str, bytes: &[u8]) -> Result<Self, DecodeError>

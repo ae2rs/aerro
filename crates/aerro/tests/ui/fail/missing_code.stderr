@@ -1,0 +1,6 @@
+error: missing `code = "..."`
+ --> tests/ui/fail/missing_code.rs:5:5
+  |
+5 | /     #[aerro(category = "business")]
+6 | |     NoCode,
+  | |__________^

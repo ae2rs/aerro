@@ -3,7 +3,7 @@
 use bincode::{Decode, Encode};
 use tonic::Code;
 
-use crate::{Aerro, Category, error::DecodeError};
+use crate::{Aerro, Category, Exposure, error::DecodeError};
 
 #[derive(Debug, thiserror::Error, Encode, Decode)]
 #[error("toy.boom (x={x})")]
@@ -26,7 +26,7 @@ impl Aerro for Boom {
         Code::Internal
     }
 
-    fn encode_payload(&self, buf: &mut Vec<u8>) {
+    fn encode_payload(&self, _route: Exposure, buf: &mut Vec<u8>) {
         let bytes = bincode::encode_to_vec(self, bincode::config::standard()).unwrap();
         buf.extend_from_slice(&bytes);
     }

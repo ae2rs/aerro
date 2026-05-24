@@ -42,8 +42,9 @@ mod tests {
 
     #[test]
     fn downcast_recovers_known_type() {
+        use crate::Exposure;
         let mut buf = Vec::new();
-        Boom { x: 7 }.encode_payload(&mut buf);
+        Boom { x: 7 }.encode_payload(Exposure::Internal, &mut buf);
         let r = RemoteError {
             category: Category::System,
             type_id: "toy.boom".into(),

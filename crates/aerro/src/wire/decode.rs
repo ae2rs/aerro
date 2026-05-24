@@ -135,7 +135,7 @@ mod tests {
             fn code(&self) -> Code {
                 Code::NotFound
             }
-            fn encode_payload(&self, _: &mut Vec<u8>) {}
+            fn encode_payload(&self, _: crate::Exposure, _: &mut Vec<u8>) {}
             fn decode_payload(_: &str, _: &[u8]) -> Result<Self, crate::DecodeError> {
                 Err(crate::DecodeError::Missing)
             }

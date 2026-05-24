@@ -40,7 +40,7 @@ pub fn encode<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> Status 
     let outer_msg = redact_message(&sf.inner, route);
 
     let mut payload = Vec::new();
-    sf.inner.encode_payload(&mut payload);
+    sf.inner.encode_payload(route, &mut payload);
 
     let wire_frames = if route == Exposure::Public {
         Vec::new()

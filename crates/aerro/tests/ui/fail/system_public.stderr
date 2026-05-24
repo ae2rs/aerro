@@ -1,0 +1,6 @@
+error: variants with `category = "system"` cannot be `exposure = "public"` — server defects must never be public-by-default
+ --> tests/ui/fail/system_public.rs:5:5
+  |
+5 | /     #[aerro(category = "system", code = "internal", exposure = "public")]
+6 | |     Bad,
+  | |_______^
