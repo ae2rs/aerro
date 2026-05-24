@@ -40,6 +40,8 @@ pub use aerro_macros::{handler, operation};
 #[cfg(feature = "tonic")]
 pub mod ext;
 #[cfg(feature = "tonic")]
+pub mod tower;
+#[cfg(feature = "tonic")]
 pub mod wire;
 
 #[cfg(feature = "tonic")]
