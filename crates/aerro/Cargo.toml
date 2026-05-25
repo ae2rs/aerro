@@ -72,6 +72,10 @@ name = "compat"
 required-features = ["macro", "compat-json"]
 
 [[example]]
+name = "handler"
+required-features = ["macro"]
+
+[[example]]
 name = "tower_compose"
 required-features = []
 
