@@ -9,16 +9,16 @@ use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
 pub enum Suite {
-    #[aerro(category = "business", code = "already_exists", error = "biz: {0}")]
+    #[aerro(category = Business, code = AlreadyExists, error = "biz: {0}")]
     Biz(String),
 
-    #[aerro(category = "validation", code = "invalid_argument", error = "val: {0}")]
+    #[aerro(category = Validation, code = InvalidArgument, error = "val: {0}")]
     Val(String),
 
-    #[aerro(category = "system", code = "internal", error = "sys")]
+    #[aerro(category = System, code = Internal, error = "sys")]
     Sys,
 
-    #[aerro(category = "transport", code = "unavailable", error = "trans")]
+    #[aerro(category = Transport, code = Unavailable, error = "trans")]
     Trans,
 }
 

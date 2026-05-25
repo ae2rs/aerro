@@ -4,13 +4,13 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::parse::Parser;
-use syn::{FnArg, ItemFn, parse2};
+use syn::{FnArg, Ident, ItemFn, parse2};
 
 #[derive(Default)]
 struct HandlerArgs {
     service: Option<String>,
     rpc: Option<String>,
-    exposure: Option<String>,
+    exposure: Option<Ident>,
     max_frames: Option<u8>,
 }
 
@@ -35,8 +35,8 @@ fn parse_args(args: TokenStream) -> syn::Result<HandlerArgs> {
                 out.rpc = Some(v.value());
             }
             "exposure" => {
-                let v: syn::LitStr = meta.value()?.parse()?;
-                out.exposure = Some(v.value());
+                let v: Ident = meta.value()?.parse()?;
+                out.exposure = Some(v);
             }
             "max_frames" => {
                 let v: syn::LitInt = meta.value()?.parse()?;
@@ -62,17 +62,19 @@ pub fn expand(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let service = args.service.unwrap_or_else(|| "unknown".into());
     let rpc = args.rpc.unwrap_or_else(|| user_fn.sig.ident.to_string());
-    let exposure_ident = match args.exposure.as_deref().unwrap_or("internal") {
-        "internal" => format_ident!("Internal"),
-        "trusted" => format_ident!("Trusted"),
-        "public" => format_ident!("Public"),
-        other => {
-            return syn::Error::new_spanned(
-                &user_fn.sig.ident,
-                format!("unknown exposure `{}`", other),
-            )
-            .to_compile_error();
+    let exposure_ident = if let Some(ident) = args.exposure {
+        match ident.to_string().as_str() {
+            "Internal" | "Trusted" | "Public" => ident,
+            other => {
+                return syn::Error::new(
+                    ident.span(),
+                    format!("unknown exposure `{}` (expected one of: Internal, Trusted, Public)", other),
+                )
+                .to_compile_error();
+            }
         }
+    } else {
+        Ident::new("Internal", proc_macro2::Span::call_site())
     };
     let max_frames = args.max_frames.unwrap_or(16);
 

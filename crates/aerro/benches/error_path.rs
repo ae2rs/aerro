@@ -17,7 +17,7 @@ use criterion::{Criterion, black_box, criterion_group, criterion_main};
 #[cfg(feature = "macro")]
 #[derive(Debug, aerro::Aerro)]
 pub enum Bench {
-    #[aerro(category = "business", code = "already_exists", error = "x={x} y={y}")]
+    #[aerro(category = Business, code = AlreadyExists, error = "x={x} y={y}")]
     Item { x: u64, y: String },
 }
 

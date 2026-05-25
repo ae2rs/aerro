@@ -8,8 +8,8 @@ use aerro::StatusIntoResultExt;
 #[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
-        category = "business",
-        code = "already_exists",
+        category = Business,
+        code = AlreadyExists,
         error = "email already taken: {email}"
     )]
     EmailTaken { email: String },
@@ -18,7 +18,7 @@ pub enum CreateUser {
 #[aerro::handler(
     service = "create-user",
     rpc = "create",
-    exposure = "public",
+    exposure = Public,
     max_frames = 8
 )]
 async fn create_user(req: String) -> Result<String, CreateUser> {

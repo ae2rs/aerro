@@ -7,8 +7,8 @@ use aerro::{Exposure, IntoStatus};
 #[derive(Debug, aerro::Aerro)]
 pub enum Db {
     #[aerro(
-        category = "system",
-        code = "internal",
+        category = System,
+        code = Internal,
         error = "db.unreachable: {host}"
     )]
     Unreachable { host: String },

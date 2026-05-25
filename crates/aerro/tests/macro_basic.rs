@@ -10,20 +10,20 @@ use tonic::Code;
 #[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
-        category = "business",
-        code = "already_exists",
+        category = Business,
+        code = AlreadyExists,
         error = "email already taken: {email}"
     )]
     EmailTaken { email: String },
 
     #[aerro(
-        category = "validation",
-        code = "invalid_argument",
+        category = Validation,
+        code = InvalidArgument,
         error = "invalid name: {0}"
     )]
     InvalidName(String),
 
-    #[aerro(category = "system", code = "internal", error = "create_user.boom")]
+    #[aerro(category = System, code = Internal, error = "create_user.boom")]
     Boom,
 }
 

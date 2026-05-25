@@ -16,8 +16,8 @@ fn main() {
     #[derive(Debug, aerro::Aerro)]
     pub enum CreateUser {
         #[aerro(
-            category = "business",
-            code = "already_exists",
+            category = Business,
+            code = AlreadyExists,
             error = "email already taken: {email}"
         )]
         EmailTaken { email: String },

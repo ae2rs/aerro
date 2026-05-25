@@ -1,6 +1,6 @@
-error: missing `code = "..."`
+error: missing `code = AlreadyExists` (PascalCase tonic::Code variant name)
  --> tests/ui/fail/missing_code.rs:5:5
   |
-5 | /     #[aerro(category = "business")]
+5 | /     #[aerro(category = Business)]
 6 | |     NoCode,
   | |__________^

@@ -2,13 +2,13 @@ use aerro;
 
 #[derive(Debug, aerro::Aerro)]
 pub enum E {
-    #[aerro(category = "business", code = "not_found", error = "x not found")]
+    #[aerro(category = Business, code = NotFound, error = "x not found")]
     NotFound,
 
-    #[aerro(category = "validation", code = "invalid_argument")]
+    #[aerro(category = Validation, code = InvalidArgument)]
     Bad(String),
 
-    #[aerro(category = "system", code = "internal")]
+    #[aerro(category = System, code = Internal)]
     Boom,
 }
 

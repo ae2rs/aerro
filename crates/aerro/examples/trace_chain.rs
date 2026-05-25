@@ -10,7 +10,7 @@ use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
 pub enum Pipeline {
-    #[aerro(category = "system", code = "internal", error = "backend.unreachable")]
+    #[aerro(category = System, code = Internal, error = "backend.unreachable")]
     Unreachable,
 }
 

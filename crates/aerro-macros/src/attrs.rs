@@ -2,7 +2,7 @@
 
 use proc_macro2::Span;
 use quote::ToTokens;
-use syn::{Attribute, DataEnum, Expr, ExprLit, Field, Fields, Ident, Lit, Meta, Token, Variant};
+use syn::{Attribute, DataEnum, Expr, Field, Fields, Ident, Lit, Meta, Token, Variant};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CategoryAttr {
@@ -13,16 +13,16 @@ pub enum CategoryAttr {
 }
 
 impl CategoryAttr {
-    fn from_str(s: &str, span: Span) -> syn::Result<Self> {
-        match s {
-            "business" => Ok(Self::Business),
-            "system" => Ok(Self::System),
-            "validation" => Ok(Self::Validation),
-            "transport" => Ok(Self::Transport),
+    fn from_ident(ident: &Ident) -> syn::Result<Self> {
+        match ident.to_string().as_str() {
+            "Business" => Ok(Self::Business),
+            "System" => Ok(Self::System),
+            "Validation" => Ok(Self::Validation),
+            "Transport" => Ok(Self::Transport),
             other => Err(syn::Error::new(
-                span,
+                ident.span(),
                 format!(
-                    "unknown category `{}` (expected one of: business, system, validation, transport)",
+                    "unknown category `{}` (expected one of: Business, System, Validation, Transport)",
                     other
                 ),
             )),
@@ -47,15 +47,15 @@ pub enum ExposureAttr {
 }
 
 impl ExposureAttr {
-    fn from_str(s: &str, span: Span) -> syn::Result<Self> {
-        match s {
-            "internal" => Ok(Self::Internal),
-            "trusted" => Ok(Self::Trusted),
-            "public" => Ok(Self::Public),
+    fn from_ident(ident: &Ident) -> syn::Result<Self> {
+        match ident.to_string().as_str() {
+            "Internal" => Ok(Self::Internal),
+            "Trusted" => Ok(Self::Trusted),
+            "Public" => Ok(Self::Public),
             other => Err(syn::Error::new(
-                span,
+                ident.span(),
                 format!(
-                    "unknown exposure `{}` (expected one of: internal, trusted, public)",
+                    "unknown exposure `{}` (expected one of: Internal, Trusted, Public)",
                     other
                 ),
             )),
@@ -104,24 +104,6 @@ pub struct EnumCfg {
     pub variants: Vec<VariantCfg>,
 }
 
-/// Convert a snake-cased gRPC code (`"already_exists"`) into the matching
-/// `tonic::Code::*` ident (`AlreadyExists`).
-fn snake_to_pascal(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut upper = true;
-    for ch in s.chars() {
-        if ch == '_' {
-            upper = true;
-        } else if upper {
-            out.extend(ch.to_uppercase());
-            upper = false;
-        } else {
-            out.push(ch);
-        }
-    }
-    out
-}
-
 pub fn snake_of_pascal(s: &str) -> String {
     let mut out = String::with_capacity(s.len() + 4);
     for (i, ch) in s.chars().enumerate() {
@@ -133,22 +115,11 @@ pub fn snake_of_pascal(s: &str) -> String {
     out
 }
 
-fn lit_str_of(expr: &Expr) -> Option<&str> {
-    if let Expr::Lit(ExprLit {
-        lit: Lit::Str(s), ..
-    }) = expr
-    {
-        Some(s.value().leak()) // leak for stable &str in this macro pass — fine for compile-time use
-    } else {
-        None
-    }
-}
-
 #[derive(Default)]
 struct ParsedVariantAttr {
-    category: Option<String>,
-    code: Option<String>,
-    exposure: Option<String>,
+    category: Option<Ident>,
+    code: Option<Ident>,
+    exposure: Option<Ident>,
     error: Option<String>,
     from_catchall: bool,
 }
@@ -164,16 +135,16 @@ fn parse_variant_attr(attr: &Attribute) -> syn::Result<ParsedVariantAttr> {
             .to_string();
         match key.as_str() {
             "category" => {
-                let value: syn::LitStr = meta.value()?.parse()?;
-                out.category = Some(value.value());
+                let value: Ident = meta.value()?.parse()?;
+                out.category = Some(value);
             }
             "code" => {
-                let value: syn::LitStr = meta.value()?.parse()?;
-                out.code = Some(value.value());
+                let value: Ident = meta.value()?.parse()?;
+                out.code = Some(value);
             }
             "exposure" => {
-                let value: syn::LitStr = meta.value()?.parse()?;
-                out.exposure = Some(value.value());
+                let value: Ident = meta.value()?.parse()?;
+                out.exposure = Some(value);
             }
             "error" => {
                 let value: syn::LitStr = meta.value()?.parse()?;
@@ -222,6 +193,72 @@ fn collect_field_cfg(field: &Field) -> syn::Result<FieldCfg> {
     })
 }
 
+fn validate_error_fmt(fmt: &str, is_tuple: bool, fields: &[FieldCfg], span: Span) -> syn::Result<()> {
+    let field_names: Vec<String> = fields
+        .iter()
+        .filter_map(|f| f.ident.as_ref())
+        .map(|i| i.to_string())
+        .collect();
+
+    let mut chars = fmt.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c != '{' {
+            if c == '}' {
+                chars.next(); // skip escaped }}
+            }
+            continue;
+        }
+        if chars.peek() == Some(&'{') {
+            chars.next(); // skip escaped {{
+            continue;
+        }
+        // collect placeholder name up to } or :
+        let mut name = String::new();
+        for inner in chars.by_ref() {
+            if inner == '}' || inner == ':' {
+                if inner == ':' {
+                    // consume rest of format spec
+                    for spec in chars.by_ref() {
+                        if spec == '}' {
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            name.push(inner);
+        }
+        if name.is_empty() || name.parse::<usize>().is_ok() {
+            // positional placeholder {} or {0} — skip
+            continue;
+        }
+        if is_tuple {
+            return Err(syn::Error::new(
+                span,
+                format!(
+                    "named placeholder `{{{}}}` cannot be used in a tuple variant (use positional `{{}}` or `{{0}}` instead)",
+                    name
+                ),
+            ));
+        }
+        if !field_names.iter().any(|f| f == &name) {
+            let available = if field_names.is_empty() {
+                "(none)".to_string()
+            } else {
+                field_names.join(", ")
+            };
+            return Err(syn::Error::new(
+                span,
+                format!(
+                    "format placeholder `{{{}}}` does not match any field (available: {})",
+                    name, available
+                ),
+            ));
+        }
+    }
+    Ok(())
+}
+
 pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
     let aerro_attrs: Vec<&Attribute> = v
         .attrs
@@ -233,7 +270,7 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
         return Err(syn::Error::new_spanned(
             v,
             format!(
-                "variant `{}` is missing `#[aerro(category = \"...\", code = \"...\")]`",
+                "variant `{}` is missing `#[aerro(category = Business, code = AlreadyExists)]`",
                 v.ident
             ),
         ));
@@ -246,25 +283,23 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
     }
     let parsed = parse_variant_attr(aerro_attrs[0])?;
 
-    let category = CategoryAttr::from_str(
-        &parsed
-            .category
-            .ok_or_else(|| syn::Error::new_spanned(v, "missing `category = \"...\"`"))?,
-        v.span(),
-    )?;
-    let code_snake = parsed
+    let category_ident = parsed
+        .category
+        .ok_or_else(|| syn::Error::new_spanned(v, "missing `category = Business` (one of: Business, System, Validation, Transport)"))?;
+    let category = CategoryAttr::from_ident(&category_ident)?;
+
+    let code_ident = parsed
         .code
-        .ok_or_else(|| syn::Error::new_spanned(v, "missing `code = \"...\"`"))?;
-    let code_ident = Ident::new(&snake_to_pascal(&code_snake), v.ident.span());
+        .ok_or_else(|| syn::Error::new_spanned(v, "missing `code = AlreadyExists` (PascalCase tonic::Code variant name)"))?;
 
     let exposure = match parsed.exposure {
-        Some(s) => Some(ExposureAttr::from_str(&s, v.span())?),
+        Some(ident) => Some(ExposureAttr::from_ident(&ident)?),
         None => None,
     };
     if category == CategoryAttr::System && exposure == Some(ExposureAttr::Public) {
         return Err(syn::Error::new_spanned(
             v,
-            "variants with `category = \"system\"` cannot be `exposure = \"public\"` — server defects must never be public-by-default",
+            "variants with `category = System` cannot be `exposure = Public` — server defects must never be public-by-default",
         ));
     }
 
@@ -277,6 +312,10 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
         .into_iter()
         .map(collect_field_cfg)
         .collect::<syn::Result<Vec<_>>>()?;
+
+    if let Some(ref fmt) = parsed.error {
+        validate_error_fmt(fmt, is_tuple, &fields, v.span())?;
+    }
 
     Ok(VariantCfg {
         ident: v.ident.clone(),
@@ -322,11 +361,6 @@ pub use syn::spanned::Spanned as _Spanned;
 // Keep `Token` / `_` imports alive without clippy noise.
 #[allow(dead_code)]
 fn _force_use(_t: Token![,], _l: Lit, _m: Meta, _e: Expr) {}
-
-#[allow(dead_code)]
-pub(crate) fn _lit_str(e: &Expr) -> Option<&str> {
-    lit_str_of(e)
-}
 
 #[allow(dead_code)]
 pub(crate) fn _tokens(t: impl ToTokens) -> proc_macro2::TokenStream {
