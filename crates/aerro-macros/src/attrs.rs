@@ -47,7 +47,7 @@ pub enum ExposureAttr {
 }
 
 impl ExposureAttr {
-    fn from_ident(ident: &Ident) -> syn::Result<Self> {
+    pub(crate) fn from_ident(ident: &Ident) -> syn::Result<Self> {
         match ident.to_string().as_str() {
             "Internal" => Ok(Self::Internal),
             "Trusted" => Ok(Self::Trusted),

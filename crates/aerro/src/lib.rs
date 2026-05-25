@@ -15,6 +15,7 @@ pub mod error;
 pub mod exposure;
 pub mod failure;
 pub mod frame;
+pub mod handler;
 pub mod remote;
 pub mod trace;
 pub mod traits;
@@ -32,10 +33,11 @@ pub use failure::ServiceFailure;
 pub use frame::Frame;
 pub use remote::RemoteError;
 pub use trace::TraceContext;
+pub use handler::{AerroHandler, Handler};
 pub use traits::Aerro;
 
 #[cfg(feature = "macro")]
-pub use aerro_macros::{Aerro, handler};
+pub use aerro_macros::{Aerro, AerroHandler};
 
 #[cfg(feature = "compat-json")]
 pub mod compat_json;
