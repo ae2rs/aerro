@@ -36,8 +36,6 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: no default features
         run: cargo clippy --workspace --all-targets --no-default-features -- -D warnings
-      - name: eyre
-        run: cargo clippy --workspace --all-targets --no-default-features --features eyre -- -D warnings
 
   test:
     name: Tests

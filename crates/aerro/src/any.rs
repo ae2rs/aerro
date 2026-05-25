@@ -1,13 +1,4 @@
-//! Anyhow / eyre interop — see spec §12.
-
-#[cfg(all(feature = "anyhow", feature = "eyre"))]
-compile_error!("aerro: features `anyhow` and `eyre` are mutually exclusive");
-
-#[cfg(feature = "anyhow")]
-pub type AnyError = anyhow::Error;
-
-#[cfg(feature = "eyre")]
-pub type AnyError = eyre::Report;
+//! Error chain rendering utility.
 
 /// Render an error and its `source()` chain into `"msg: src1: src2: ..."` form.
 pub fn render_chain(err: &(dyn std::error::Error + 'static)) -> String {

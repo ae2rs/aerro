@@ -35,8 +35,6 @@
 //! |------|---------|-------------|
 //! | `macro` | ✓ | [`Aerro`] derive macro |
 //! | `tracing` | ✓ | Capture OTel trace/span IDs via the `tracing` subscriber |
-//! | `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
-//! | `eyre` | — | `AnyError` bridge for `eyre::Report` |
 //! # Key Types
 //!
 //! - [`Aerro`] — the trait every error type implements (derive or manual)
@@ -62,8 +60,6 @@ pub mod traits;
 #[cfg(test)]
 pub(crate) mod test_support;
 
-#[cfg(any(feature = "anyhow", feature = "eyre"))]
-pub use any::AnyError;
 pub use any::render_chain;
 pub use category::Category;
 pub use error::{DecodeError, EncodeError};
