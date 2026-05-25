@@ -14,6 +14,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          shared-key: "release"
 
       - name: Build
         run: cargo build --workspace

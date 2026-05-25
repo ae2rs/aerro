@@ -32,6 +32,9 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          shared-key: "ci"
       - name: default features
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: no default features
@@ -47,6 +50,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          shared-key: "ci"
       - name: default features
         run: cargo test --workspace
 
@@ -60,4 +66,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: dtolnay/rust-toolchain@1.85
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          shared-key: "ci"
       - run: cargo build --workspace
