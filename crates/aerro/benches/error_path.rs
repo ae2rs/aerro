@@ -1,6 +1,6 @@
-//! Criterion bench: aerro encode/decode vs. a serde_json baseline.
+//! Criterion bench: aerro encode/decode.
 //!
-//! Run with: cargo bench -p aerro --bench error_path --features compat-json
+//! Run with: cargo bench -p aerro --bench error_path
 
 #[cfg(not(feature = "macro"))]
 fn main() {
@@ -33,20 +33,6 @@ fn bench_encode(c: &mut Criterion) {
                 y: "hello-world".into(),
             };
             black_box(v.into_status(black_box(&opts)));
-        });
-    });
-
-    #[cfg(feature = "compat-json")]
-    group.bench_function("compat_json", |b| {
-        use aerro::ServiceFailure;
-        use aerro::compat_json::encode_json;
-        b.iter(|| {
-            let sf: ServiceFailure<Bench> = Bench::Item {
-                x: 42,
-                y: "hello-world".into(),
-            }
-            .into();
-            black_box(encode_json(&sf, black_box(&opts)));
         });
     });
 

@@ -21,7 +21,7 @@ and decide whether to surface the message to the end user.
 - **Exposure control** — `Internal`, `Trusted`, and `Public` tiers redact system
   errors and strip call traces automatically at the egress point
 - **Zero allocations on the happy path** — no heap work when there is no error
-- **Compat bridges** — optional `anyhow`, `eyre`, and JSON-envelope features
+- **Compat bridges** — optional `anyhow`, `eyre` features
 
 ## Quick Start
 
@@ -64,7 +64,6 @@ let recovered = status.into_aerro::<CreateUserError>().unwrap();
 | [`handler`](crates/aerro/examples/handler.rs) | `#[derive(AerroHandler)]` for typed RPC handlers |
 | [`trace_chain`](crates/aerro/examples/trace_chain.rs) | 3-hop trace accumulation across service boundaries |
 | [`exposure`](crates/aerro/examples/exposure.rs) | `Internal` / `Trusted` / `Public` redaction tiers |
-| [`compat`](crates/aerro/examples/compat.rs) | JSON envelope alternative (`compat-json` feature) |
 
 Run any example with:
 
@@ -80,7 +79,6 @@ cargo run --example basic --features macro
 | `tracing` | ✓ | Capture OTel trace/span IDs from the active `tracing` span |
 | `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
 | `eyre` | — | `AnyError` bridge for `eyre::Report` |
-| `compat-json` | — | JSON wire envelope alternative to the default protobuf encoding |
 
 ## Status
 

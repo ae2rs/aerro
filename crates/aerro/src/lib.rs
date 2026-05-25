@@ -37,8 +37,6 @@
 //! | `tracing` | ✓ | Capture OTel trace/span IDs via the `tracing` subscriber |
 //! | `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
 //! | `eyre` | — | `AnyError` bridge for `eyre::Report` |
-//! | `compat-json` | — | JSON wire envelope (alternative to default protobuf) |
-//!
 //! # Key Types
 //!
 //! - [`Aerro`] — the trait every error type implements (derive or manual)
@@ -81,8 +79,6 @@ pub use traits::Aerro;
 #[cfg(feature = "macro")]
 pub use aerro_macros::{Aerro, AerroHandler};
 
-#[cfg(feature = "compat-json")]
-pub mod compat_json;
 pub mod ext;
 pub mod wire;
 
