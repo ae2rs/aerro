@@ -1,5 +1,14 @@
-//! OTel trace + span IDs piggy-backed on every error — see spec §7.
+//! OpenTelemetry trace and span IDs carried on every error envelope.
+//!
+//! [`TraceContext::capture()`] reads the current `tracing` span when the
+//! `tracing` feature is enabled; it returns zeros when no OTel layer is active
+//! or the feature is off. The context is embedded in the wire envelope
+//! automatically by [`encode`](crate::wire::encode::encode).
 
+/// OTel W3C trace context — 128-bit trace ID and 64-bit span ID.
+///
+/// All-zeros means "no active span." Use [`TraceContext::capture()`] to populate
+/// from the current `tracing` span, or construct directly when replaying from the wire.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
 pub struct TraceContext {
     pub trace_id: [u8; 16],
@@ -7,6 +16,7 @@ pub struct TraceContext {
 }
 
 impl TraceContext {
+    /// Returns `true` if both IDs are all-zeros (no active span).
     pub fn is_empty(&self) -> bool {
         self.trace_id == [0; 16] && self.span_id == [0; 8]
     }

@@ -15,6 +15,7 @@ pub struct ServerLayer {
 }
 
 impl ServerLayer {
+    /// Create a new `ServerLayer` with default options (`Internal` exposure, 16-frame cap).
     pub fn new() -> Self {
         Self {
             service: "unknown",
@@ -23,26 +24,36 @@ impl ServerLayer {
         }
     }
 
+    /// Set the service name embedded in each [`Frame`](crate::Frame) appended by this layer.
     pub fn service_name(mut self, s: &'static str) -> Self {
         self.service = s;
         self
     }
 
+    /// Set the RPC name embedded in each [`Frame`](crate::Frame).
     pub fn rpc_name(mut self, s: &'static str) -> Self {
         self.rpc = s;
         self
     }
 
+    /// Set the egress [`Exposure`] tier for this handler.
+    ///
+    /// System-category errors are redacted to `"internal error"` at `Trusted` and `Public` tiers.
+    /// Call frames are stripped entirely at `Public`.
     pub fn exposure(mut self, e: Exposure) -> Self {
         self.opts.exposure = e;
         self
     }
 
+    /// Maximum number of [`Frame`](crate::Frame)s retained in the wire envelope.
+    ///
+    /// Excess frames are collapsed to a synthetic `"<n> frames elided"` frame.
     pub fn max_frames(mut self, n: u8) -> Self {
         self.opts.max_frames = n;
         self
     }
 
+    /// Return the current [`EncodeOptions`] built by this layer.
     pub fn encode_options(&self) -> &EncodeOptions {
         &self.opts
     }

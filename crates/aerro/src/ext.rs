@@ -5,10 +5,13 @@ use tonic::Status;
 use crate::wire::encode::EncodeOptions;
 use crate::{Aerro, IntoStatus, RemoteError, ServiceFailure, TryFromStatus};
 
+/// Convenience method to encode a `Result<T, E>` into a `Result<T, tonic::Status>`
+/// without manually calling [`IntoStatus`].
 pub trait ResultIntoStatusExt<T, E: Aerro> {
     // `tonic::Status` is ~176 bytes; we return it because tonic's RPC surface
     // requires it. The lint can't be honored here without breaking interop.
     #[allow(clippy::result_large_err)]
+    /// Encode the `Err` variant into a `tonic::Status`; pass `Ok` through unchanged.
     fn into_status_ext(self, opts: &EncodeOptions) -> Result<T, Status>;
 }
 
@@ -19,7 +22,10 @@ impl<T, E: Aerro> ResultIntoStatusExt<T, E> for Result<T, E> {
     }
 }
 
+/// Extension trait on `tonic::Status` to attempt typed error recovery.
 pub trait StatusIntoResultExt {
+    /// Try to decode the status into a [`ServiceFailure<E>`](ServiceFailure),
+    /// falling back to a [`RemoteError`] if the type ID is unknown.
     fn into_aerro<E: Aerro>(self) -> Result<ServiceFailure<E>, RemoteError>;
 }
 

@@ -7,17 +7,25 @@
 //! macro on the calling side.
 
 #[derive(Debug, Copy, Clone)]
+/// Tower layer that tags outbound requests with the caller's service name.
+///
+/// Wrap your tonic client channel with `ClientLayer` to make the caller identity
+/// available for frame annotation. Automatic response-side frame appending is
+/// planned for a future release; for now, callers append frames manually via
+/// [`StatusIntoResultExt::into_aerro`](crate::StatusIntoResultExt::into_aerro).
 pub struct ClientLayer {
     pub(crate) caller_service: &'static str,
 }
 
 impl ClientLayer {
+    /// Create a new `ClientLayer` with caller service name `"unknown"`.
     pub fn new() -> Self {
         Self {
             caller_service: "unknown",
         }
     }
 
+    /// Set the caller service name embedded in outbound call frames.
     pub fn caller_service(mut self, s: &'static str) -> Self {
         self.caller_service = s;
         self
@@ -47,6 +55,7 @@ pub struct ClientService<S> {
 }
 
 impl<S> ClientService<S> {
+    /// Return the caller service name configured on the wrapping [`ClientLayer`].
     pub fn caller_service(&self) -> &'static str {
         self.layer.caller_service
     }
