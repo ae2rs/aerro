@@ -1,0 +1,73 @@
+name: Rust
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: default features
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: no default features
+        run: cargo clippy --workspace --all-targets --no-default-features -- -D warnings
+      - name: eyre
+        run: cargo clippy --workspace --all-targets --no-default-features --features eyre -- -D warnings
+      - name: compat-json
+        run: cargo clippy --workspace --all-targets --features compat-json -- -D warnings
+      - name: eyre + compat-json
+        run: cargo clippy --workspace --all-targets --features compat-json,eyre -- -D warnings
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: default features
+        run: cargo test --workspace
+      - name: compat-json
+        run: cargo test --workspace --features compat-json
+      - name: eyre + compat-json
+        run: cargo test --workspace --features compat-json,eyre
+
+  msrv:
+    name: MSRV (1.85)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dtolnay/rust-toolchain@1.85
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --workspace --features compat-json,eyre

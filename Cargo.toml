@@ -1,16 +1,40 @@
-[package]
-name = "aerro"
-version = "0.1.0"
+[workspace]
+resolver = "2"
+members = ["crates/aerro", "crates/aerro-macros"]
+
+[workspace.lints.clippy]
+# (Reserved for workspace-wide clippy overrides; currently none.)
+
+[workspace.package]
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85"
-description = "Cross-service gRPC error framework for Rust."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ae2rs/aerro"
 homepage = "https://github.com/ae2rs/aerro"
 documentation = "https://docs.rs/aerro"
-readme = "README.md"
-keywords = ["grpc", "tonic", "prost", "error", "trace"]
-categories = ["network-programming", "rust-patterns"]
-exclude = [".github/", "AGENTS.md", "target/"]
 
-[dependencies]
+[workspace.dependencies]
+tonic = { version = "0.13", default-features = false, features = ["codegen", "prost", "transport"] }
+prost = "0.13"
+tonic-build = { version = "0.13", default-features = false, features = ["prost"] }
+bincode = { version = "2.0", default-features = false, features = ["std", "derive"] }
+smallvec = { version = "1.13", features = ["const_generics", "union"] }
+thiserror = "2"
+bytes = "1.7"
+tracing = { version = "0.1", default-features = false }
+tracing-opentelemetry = { version = "0.27", default-features = false }
+opentelemetry = { version = "0.26", default-features = false }
+anyhow = "1"
+eyre = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full", "extra-traits"] }
+trybuild = "1"
+criterion = { version = "0.5", default-features = false, features = ["html_reports"] }
+dhat = "0.3"
+http = "1"
+tower = { version = "0.5", default-features = false, features = ["util"] }
+pin-project-lite = "0.2"

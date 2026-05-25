@@ -1,0 +1,29 @@
+syntax = "proto3";
+package aerro.v1;
+
+message Envelope {
+  Category       category  = 1;
+  string         type_id   = 2;
+  bytes          trace_id  = 3;
+  bytes          span_id   = 4;
+  repeated Frame frames    = 5;
+  bytes          payload   = 6;
+  uint32         version   = 7;
+}
+
+message Frame {
+  string   service  = 1;
+  string   rpc      = 2;
+  uint32   code     = 3;
+  string   message  = 4;
+  string   location = 5;
+  Category category = 6;
+}
+
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  CATEGORY_BUSINESS    = 1;
+  CATEGORY_SYSTEM      = 2;
+  CATEGORY_VALIDATION  = 3;
+  CATEGORY_TRANSPORT   = 4;
+}

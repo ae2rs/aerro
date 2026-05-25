@@ -1,0 +1,5 @@
+error: unknown aerro attribute `nonsense`
+ --> tests/ui/fail/unknown_attr.rs:5:51
+  |
+5 |     #[aerro(category = Business, code = NotFound, nonsense = "x")]
+  |                                                   ^^^^^^^^
