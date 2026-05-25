@@ -21,8 +21,6 @@ and decide whether to surface the message to the end user.
 - **Exposure control** — `Internal`, `Trusted`, and `Public` tiers redact system
   errors and strip call traces automatically at the egress point
 - **Zero allocations on the happy path** — no heap work when there is no error
-- **`tower` integration** — `ServerLayer` / `ClientLayer` compose with existing
-  middleware stacks
 - **Compat bridges** — optional `anyhow`, `eyre`, and JSON-envelope features
 
 ## Quick Start
@@ -67,7 +65,6 @@ let recovered = status.into_aerro::<CreateUserError>().unwrap();
 | [`trace_chain`](crates/aerro/examples/trace_chain.rs) | 3-hop trace accumulation across service boundaries |
 | [`exposure`](crates/aerro/examples/exposure.rs) | `Internal` / `Trusted` / `Public` redaction tiers |
 | [`compat`](crates/aerro/examples/compat.rs) | JSON envelope alternative (`compat-json` feature) |
-| [`tower_compose`](crates/aerro/examples/tower_compose.rs) | `ServerLayer` composition with other tower middleware |
 
 Run any example with:
 
