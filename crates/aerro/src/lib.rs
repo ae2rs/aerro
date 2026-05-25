@@ -33,7 +33,7 @@
 //!
 //! | Flag | Default | Description |
 //! |------|---------|-------------|
-//! | `macro` | ✓ | [`Aerro`] and [`AerroHandler`] derive macros |
+//! | `macro` | ✓ | [`Aerro`] derive macro |
 //! | `tracing` | ✓ | Capture OTel trace/span IDs via the `tracing` subscriber |
 //! | `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
 //! | `eyre` | — | `AnyError` bridge for `eyre::Report` |
@@ -55,7 +55,6 @@ pub mod error;
 pub mod exposure;
 pub mod failure;
 pub mod frame;
-pub mod handler;
 pub mod remote;
 pub mod trace;
 pub mod traits;
@@ -71,13 +70,12 @@ pub use error::{DecodeError, EncodeError};
 pub use exposure::Exposure;
 pub use failure::ServiceFailure;
 pub use frame::Frame;
-pub use handler::{AerroHandler, Handler};
 pub use remote::RemoteError;
 pub use trace::TraceContext;
 pub use traits::Aerro;
 
 #[cfg(feature = "macro")]
-pub use aerro_macros::{Aerro, AerroHandler};
+pub use aerro_macros::Aerro;
 
 pub mod ext;
 pub mod wire;
