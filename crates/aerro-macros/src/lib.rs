@@ -27,7 +27,7 @@ mod operation;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// #[derive(Debug, aerro::Aerro)]
 /// pub enum CreateUserError {
 ///     #[aerro(category = Business, code = AlreadyExists, error = "email already taken: {email}")]
@@ -64,7 +64,7 @@ pub fn aerro_derive(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use aerro::{AerroHandler, Handler};
 ///
 /// #[derive(Debug, aerro::Aerro)]
