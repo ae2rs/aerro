@@ -84,7 +84,6 @@ pub use aerro_macros::{Aerro, AerroHandler};
 #[cfg(feature = "compat-json")]
 pub mod compat_json;
 pub mod ext;
-pub mod tower;
 pub mod wire;
 
 pub use ext::{ResultIntoStatusExt, StatusIntoResultExt};
