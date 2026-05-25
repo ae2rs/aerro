@@ -64,8 +64,11 @@ pub fn expand(input: TokenStream) -> TokenStream {
 
     // Only structs are supported.
     if !matches!(input.data, Data::Struct(_)) {
-        return syn::Error::new(Span::call_site(), "#[derive(AerroHandler)] only works on structs")
-            .to_compile_error();
+        return syn::Error::new(
+            Span::call_site(),
+            "#[derive(AerroHandler)] only works on structs",
+        )
+        .to_compile_error();
     }
 
     let attrs = match parse_aerro_attrs(&input) {
@@ -78,10 +81,7 @@ pub fn expand(input: TokenStream) -> TokenStream {
 
     let service = attrs.service.unwrap_or_else(|| "unknown".into());
     let rpc = attrs.rpc.unwrap_or_else(|| struct_name.to_string());
-    let exposure_ident = attrs
-        .exposure
-        .unwrap_or(ExposureAttr::Internal)
-        .ident();
+    let exposure_ident = attrs.exposure.unwrap_or(ExposureAttr::Internal).ident();
     let max_frames = attrs.max_frames.unwrap_or(16u8);
 
     quote! {

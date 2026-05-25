@@ -193,7 +193,12 @@ fn collect_field_cfg(field: &Field) -> syn::Result<FieldCfg> {
     })
 }
 
-fn validate_error_fmt(fmt: &str, is_tuple: bool, fields: &[FieldCfg], span: Span) -> syn::Result<()> {
+fn validate_error_fmt(
+    fmt: &str,
+    is_tuple: bool,
+    fields: &[FieldCfg],
+    span: Span,
+) -> syn::Result<()> {
     let field_names: Vec<String> = fields
         .iter()
         .filter_map(|f| f.ident.as_ref())
@@ -283,14 +288,20 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
     }
     let parsed = parse_variant_attr(aerro_attrs[0])?;
 
-    let category_ident = parsed
-        .category
-        .ok_or_else(|| syn::Error::new_spanned(v, "missing `category = Business` (one of: Business, System, Validation, Transport)"))?;
+    let category_ident = parsed.category.ok_or_else(|| {
+        syn::Error::new_spanned(
+            v,
+            "missing `category = Business` (one of: Business, System, Validation, Transport)",
+        )
+    })?;
     let category = CategoryAttr::from_ident(&category_ident)?;
 
-    let code_ident = parsed
-        .code
-        .ok_or_else(|| syn::Error::new_spanned(v, "missing `code = AlreadyExists` (PascalCase tonic::Code variant name)"))?;
+    let code_ident = parsed.code.ok_or_else(|| {
+        syn::Error::new_spanned(
+            v,
+            "missing `code = AlreadyExists` (PascalCase tonic::Code variant name)",
+        )
+    })?;
 
     let exposure = match parsed.exposure {
         Some(ident) => Some(ExposureAttr::from_ident(&ident)?),

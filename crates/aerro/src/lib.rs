@@ -31,9 +31,9 @@ pub use error::{DecodeError, EncodeError};
 pub use exposure::Exposure;
 pub use failure::ServiceFailure;
 pub use frame::Frame;
+pub use handler::{AerroHandler, Handler};
 pub use remote::RemoteError;
 pub use trace::TraceContext;
-pub use handler::{AerroHandler, Handler};
 pub use traits::Aerro;
 
 #[cfg(feature = "macro")]
