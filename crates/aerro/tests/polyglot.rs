@@ -8,7 +8,7 @@ use aerro::IntoStatus;
 use aerro::wire::encode::EncodeOptions;
 use tonic::Code;
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum Api {
     #[aerro(category = "business", code = "not_found", error = "user not found")]
     NotFound,

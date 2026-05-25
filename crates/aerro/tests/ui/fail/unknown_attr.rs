@@ -1,6 +1,6 @@
 use aerro;
 
-#[aerro::operation]
+#[derive(aerro::Aerro)]
 pub enum E {
     #[aerro(category = "business", code = "not_found", nonsense = "x")]
     Bad,

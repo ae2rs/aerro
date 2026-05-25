@@ -4,7 +4,7 @@
 use aerro::wire::encode::EncodeOptions;
 use aerro::{Exposure, IntoStatus};
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum Db {
     #[aerro(
         category = "system",

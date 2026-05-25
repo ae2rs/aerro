@@ -5,7 +5,7 @@
 use aerro::ServiceFailure;
 use aerro::StatusIntoResultExt;
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
         category = "business",

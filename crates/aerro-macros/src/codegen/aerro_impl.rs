@@ -164,9 +164,12 @@ fn encode_payload_arm(v: &VariantCfg) -> TokenStream {
             }
         }
     } else {
-        // Named-field variant — bind by name.
-        let names: Vec<&Ident> = v.fields.iter().filter_map(|f| f.ident.as_ref()).collect();
-        let pat = quote! { { #(#names),* } };
+        // Named-field variant — bind only plain fields; ignore the rest with `..`.
+        let names: Vec<&Ident> = payload_fields
+            .iter()
+            .filter_map(|(_, f)| f.ident.as_ref())
+            .collect();
+        let pat = quote! { { #(#names,)* .. } };
         let payload_exprs = payload_fields.iter().map(|(_, f)| {
             let name = f.ident.as_ref().unwrap();
             redact_expr(f, &quote! { #name })

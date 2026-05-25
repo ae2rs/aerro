@@ -1,6 +1,6 @@
 use aerro;
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum E {
     #[aerro(category = "business", code = "not_found", error = "x not found")]
     NotFound,

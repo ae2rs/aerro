@@ -35,7 +35,7 @@ pub use trace::TraceContext;
 pub use traits::Aerro;
 
 #[cfg(feature = "macro")]
-pub use aerro_macros::{handler, operation};
+pub use aerro_macros::{Aerro, handler};
 
 #[cfg(feature = "compat-json")]
 pub mod compat_json;

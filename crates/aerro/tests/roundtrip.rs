@@ -7,7 +7,7 @@ use aerro::wire::encode::EncodeOptions;
 use aerro::{Aerro, Category, Exposure, IntoStatus, StatusIntoResultExt};
 use tonic::Code;
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum Suite {
     #[aerro(category = "business", code = "already_exists", error = "biz: {0}")]
     Biz(String),

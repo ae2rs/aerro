@@ -9,7 +9,7 @@ use crate::attrs::{EnumCfg, FieldRole, VariantCfg, snake_of_pascal};
 
 pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
     let enum_ident = &cfg.ident;
-    let display_arms = cfg.variants.iter().map(display_arm);
+    let display_arms = cfg.variants.iter().map(|v| display_arm(enum_ident, v));
     let source_arms = cfg.variants.iter().map(source_arm);
 
     let from_impls = cfg.variants.iter().filter_map(|v| from_impl(enum_ident, v));
@@ -35,10 +35,14 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
     }
 }
 
-fn display_arm(v: &VariantCfg) -> TokenStream {
+fn display_arm(enum_ident: &Ident, v: &VariantCfg) -> TokenStream {
     let variant = &v.ident;
     let has_explicit_fmt = v.error_fmt.is_some();
-    let default_text = format!("{}.{}", "<enum>", snake_of_pascal(&variant.to_string()));
+    let default_text = format!(
+        "{}.{}",
+        snake_of_pascal(&enum_ident.to_string()),
+        snake_of_pascal(&variant.to_string())
+    );
     let fmt_string = v.error_fmt.clone().unwrap_or(default_text);
 
     if v.fields.is_empty() {

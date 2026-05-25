@@ -13,7 +13,7 @@ fn main() {
     use aerro::compat_json::{decode_json, encode_json};
     use aerro::wire::encode::EncodeOptions;
 
-    #[aerro::operation]
+    #[derive(Debug, aerro::Aerro)]
     pub enum CreateUser {
         #[aerro(
             category = "business",

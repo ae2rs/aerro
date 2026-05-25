@@ -15,7 +15,7 @@ use aerro::{IntoStatus, StatusIntoResultExt};
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
 #[cfg(feature = "macro")]
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum Bench {
     #[aerro(category = "business", code = "already_exists", error = "x={x} y={y}")]
     Item { x: u64, y: String },

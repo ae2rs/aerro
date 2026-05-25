@@ -1,4 +1,4 @@
-//! End-to-end test of `#[aerro::operation]` — verifies the derive produces
+//! End-to-end test of `#[derive(aerro::Aerro)]` — verifies the derive produces
 //! a working `Aerro` impl that round-trips via the wire layer.
 
 #![cfg(feature = "macro")]
@@ -7,7 +7,7 @@ use aerro::wire::encode::EncodeOptions;
 use aerro::{Aerro, Category, Exposure, IntoStatus, ServiceFailure, StatusIntoResultExt};
 use tonic::Code;
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
         category = "business",

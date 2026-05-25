@@ -8,7 +8,7 @@ use aerro::wire::encode::EncodeOptions;
 use aerro::{Category, Frame, IntoStatus, ServiceFailure, StatusIntoResultExt};
 use tonic::Code;
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum Pipeline {
     #[aerro(category = "system", code = "internal", error = "backend.unreachable")]
     Unreachable,

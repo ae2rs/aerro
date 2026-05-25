@@ -3,7 +3,7 @@
 use aerro::wire::encode::EncodeOptions;
 use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
 
-#[aerro::operation]
+#[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
         category = "business",
