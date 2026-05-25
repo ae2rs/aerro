@@ -37,8 +37,6 @@
 //! | `tracing` | ✓ | Capture OTel trace/span IDs via the `tracing` subscriber |
 //! | `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
 //! | `eyre` | — | `AnyError` bridge for `eyre::Report` |
-//! | `compat-json` | — | JSON wire envelope (alternative to default protobuf) |
-//!
 //! # Key Types
 //!
 //! - [`Aerro`] — the trait every error type implements (derive or manual)
