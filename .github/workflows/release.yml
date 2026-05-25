@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --workspace
+
+      - name: Test
+        run: cargo test --workspace
+
+      - name: Publish aerro-macros
+        run: cargo publish -p aerro-macros
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish aerro
+        run: cargo publish -p aerro
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Create GitHub Release
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "v$VERSION" \
+            --title "v$VERSION" \
+            --notes "See [commits](https://github.com/ae2rs/aerro/commits/v$VERSION) for changes."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
