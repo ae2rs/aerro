@@ -81,8 +81,6 @@ pub use traits::Aerro;
 #[cfg(feature = "macro")]
 pub use aerro_macros::{Aerro, AerroHandler};
 
-#[cfg(feature = "compat-json")]
-pub mod compat_json;
 pub mod ext;
 pub mod wire;
 
