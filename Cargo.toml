@@ -6,7 +6,7 @@ members = ["crates/aerro", "crates/aerro-macros"]
 # (Reserved for workspace-wide clippy overrides; currently none.)
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
