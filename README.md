@@ -21,7 +21,6 @@ and decide whether to surface the message to the end user.
 - **Exposure control** — `Internal`, `Trusted`, and `Public` tiers redact system
   errors and strip call traces automatically at the egress point
 - **Zero allocations on the happy path** — no heap work when there is no error
-- **Compat bridges** — optional `anyhow`, `eyre` features
 
 ## Quick Start
 
@@ -61,7 +60,6 @@ let recovered = status.into_aerro::<CreateUserError>().unwrap();
 | Example | What it shows |
 |---------|---------------|
 | [`basic`](crates/aerro/examples/basic.rs) | Minimum viable usage — one enum, one wire round-trip |
-| [`handler`](crates/aerro/examples/handler.rs) | `#[derive(AerroHandler)]` for typed RPC handlers |
 | [`trace_chain`](crates/aerro/examples/trace_chain.rs) | 3-hop trace accumulation across service boundaries |
 | [`exposure`](crates/aerro/examples/exposure.rs) | `Internal` / `Trusted` / `Public` redaction tiers |
 
@@ -75,10 +73,8 @@ cargo run --example basic --features macro
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `macro` | ✓ | `#[derive(Aerro)]` and `#[derive(AerroHandler)]` proc-macros |
+| `macro` | ✓ | `#[derive(Aerro)]` proc-macro |
 | `tracing` | ✓ | Capture OTel trace/span IDs from the active `tracing` span |
-| `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
-| `eyre` | — | `AnyError` bridge for `eyre::Report` |
 
 ## Status
 
