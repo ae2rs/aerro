@@ -1,4 +1,5 @@
-//! `tonic::Status` → `ServiceFailure<E>` | `RemoteError` decoding — see spec §6.
+//! `tonic::Status` → `ServiceFailure<E>` decoding — the client-side counterpart to
+//! [`encode`](crate::wire::encode::encode).
 
 use bytes::Bytes;
 use prost::Message;
@@ -10,6 +11,11 @@ use crate::{Aerro, Category, Frame, RemoteError, ServiceFailure, trace::TraceCon
 use super::envelope::from_proto;
 use super::raw;
 
+/// Decode a `tonic::Status` into a [`ServiceFailure<E>`](crate::ServiceFailure).
+///
+/// Returns `Err(RemoteError)` when the envelope's type ID is not in `E::TYPE_IDS`.
+/// The returned `RemoteError` still carries the wire envelope so it can be re-encoded
+/// or forwarded without data loss.
 pub fn decode<E: Aerro>(status: Status) -> Result<ServiceFailure<E>, RemoteError> {
     let details = status.details();
     if details.is_empty() {

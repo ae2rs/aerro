@@ -1,10 +1,52 @@
 //! Cross-service gRPC errors for Rust.
 //!
-//! `aerro` is the open-source Rust gRPC error library — cross-service typed
-//! errors with bounded inline call traces, structured upcasting/downcasting,
-//! and zero allocations on the happy path.
+//! `aerro` gives every error a **typed identity**, a **bounded call trace**, and
+//! a **structured wire encoding**. Derive [`Aerro`] on an error enum, call
+//! [`IntoStatus`] to encode it into a `tonic::Status`, and [`TryFromStatus`]
+//! on the client to recover the original variant — with the full chain of service
+//! hops attached.
 //!
-//! See `docs/specs/2026-05-24-aerro-v1-design.md` for the full design spec.
+//! # Quick Example
+//!
+//! ```rust
+//! use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
+//! use aerro::wire::encode::EncodeOptions;
+//!
+//! #[derive(Debug, aerro::Aerro)]
+//! pub enum CreateUserError {
+//!     #[aerro(category = Business, code = AlreadyExists, error = "email already taken: {email}")]
+//!     EmailTaken { email: String },
+//!
+//!     #[aerro(category = System, code = Internal, error = "db.unavailable")]
+//!     DbUnavailable,
+//! }
+//!
+//! // Server side
+//! let err = CreateUserError::EmailTaken { email: "alice@example.com".into() };
+//! let status = err.into_status(&EncodeOptions::default());
+//!
+//! // Client side — recover the typed variant
+//! let recovered = status.into_aerro::<CreateUserError>().unwrap();
+//! ```
+//!
+//! # Feature Flags
+//!
+//! | Flag | Default | Description |
+//! |------|---------|-------------|
+//! | `macro` | ✓ | [`Aerro`] and [`AerroHandler`] derive macros |
+//! | `tracing` | ✓ | Capture OTel trace/span IDs via the `tracing` subscriber |
+//! | `anyhow` | — | `AnyError` bridge for `anyhow::Error` |
+//! | `eyre` | — | `AnyError` bridge for `eyre::Report` |
+//! | `compat-json` | — | JSON wire envelope (alternative to default protobuf) |
+//!
+//! # Key Types
+//!
+//! - [`Aerro`] — the trait every error type implements (derive or manual)
+//! - [`ServiceFailure<E>`](crate::failure::ServiceFailure) — typed error + frames + trace
+//! - [`RemoteError`] — type-erased fallback for errors from unknown services
+//! - [`Frame`] — one hop in the call chain
+//! - [`TraceContext`] — OTel trace/span IDs
+//! - [`EncodeOptions`] — egress configuration (exposure tier, frame cap)
 
 /// Current crate version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
