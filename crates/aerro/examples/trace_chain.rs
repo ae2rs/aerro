@@ -1,8 +1,11 @@
 //! 3-hop trace accumulation: backend (B) → middleware (M) → gateway (G).
 //! Each hop appends a frame; the final `RemoteError` shows the full chain.
 
-use aerro::{Category, Frame, IntoStatus, ServiceFailure, StatusIntoResultExt};
+// `tonic::Status` is ~176 bytes; we return `Result<_, Status>` here because
+// that is the shape tonic gives RPC handlers. The example does the same.
+
 use aerro::wire::encode::EncodeOptions;
+use aerro::{Category, Frame, IntoStatus, ServiceFailure, StatusIntoResultExt};
 use tonic::Code;
 
 #[aerro::operation]
@@ -15,6 +18,7 @@ fn backend() -> Result<(), Pipeline> {
     Err(Pipeline::Unreachable)
 }
 
+#[allow(clippy::result_large_err)]
 fn middleware() -> Result<(), tonic::Status> {
     match backend() {
         Ok(v) => Ok(v),
@@ -32,6 +36,7 @@ fn middleware() -> Result<(), tonic::Status> {
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn gateway() -> Result<(), tonic::Status> {
     match middleware() {
         Ok(v) => Ok(v),

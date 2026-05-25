@@ -15,7 +15,11 @@ fn main() {
 
     #[aerro::operation]
     pub enum CreateUser {
-        #[aerro(category = "business", code = "already_exists", error = "email already taken: {email}")]
+        #[aerro(
+            category = "business",
+            code = "already_exists",
+            error = "email already taken: {email}"
+        )]
         EmailTaken { email: String },
     }
 
@@ -24,7 +28,10 @@ fn main() {
     }
     .into();
     let st = encode_json(&sf, &EncodeOptions::default());
-    println!("JSON details: {}", std::str::from_utf8(st.details()).unwrap());
+    println!(
+        "JSON details: {}",
+        std::str::from_utf8(st.details()).unwrap()
+    );
     let r = decode_json(&st).unwrap();
     println!("decoded type_id={} category={:?}", r.type_id, r.category);
 }

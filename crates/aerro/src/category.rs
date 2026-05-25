@@ -72,7 +72,10 @@ mod tests {
 
     #[test]
     fn from_code_invalid_arg_is_validation() {
-        assert_eq!(Category::from_code(Code::InvalidArgument), Category::Validation);
+        assert_eq!(
+            Category::from_code(Code::InvalidArgument),
+            Category::Validation
+        );
     }
 
     #[test]

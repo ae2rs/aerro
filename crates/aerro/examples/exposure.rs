@@ -1,12 +1,16 @@
 //! Same typed error encoded at three exposure tiers; observe what each tier
 //! ships to its audience.
 
-use aerro::{Exposure, IntoStatus};
 use aerro::wire::encode::EncodeOptions;
+use aerro::{Exposure, IntoStatus};
 
 #[aerro::operation]
 pub enum Db {
-    #[aerro(category = "system", code = "internal", error = "db.unreachable: {host}")]
+    #[aerro(
+        category = "system",
+        code = "internal",
+        error = "db.unreachable: {host}"
+    )]
     Unreachable { host: String },
 }
 

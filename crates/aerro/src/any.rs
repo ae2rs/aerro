@@ -37,13 +37,18 @@ mod tests {
 
     impl std::error::Error for E {
         fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-            self.1.as_deref().map(|b| b as &(dyn std::error::Error + 'static))
+            self.1
+                .as_deref()
+                .map(|b| b as &(dyn std::error::Error + 'static))
         }
     }
 
     #[test]
     fn chain_renders_all_levels() {
-        let e = E("top", Some(Box::new(E("mid", Some(Box::new(E("leaf", None)))))));
+        let e = E(
+            "top",
+            Some(Box::new(E("mid", Some(Box::new(E("leaf", None)))))),
+        );
         assert_eq!(render_chain(&e), "top: mid: leaf");
     }
 }

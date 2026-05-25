@@ -1,11 +1,15 @@
 //! One enum, one round-trip across the wire — the simplest possible aerro usage.
 
-use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
 use aerro::wire::encode::EncodeOptions;
+use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
 
 #[aerro::operation]
 pub enum CreateUser {
-    #[aerro(category = "business", code = "already_exists", error = "email already taken: {email}")]
+    #[aerro(
+        category = "business",
+        code = "already_exists",
+        error = "email already taken: {email}"
+    )]
     EmailTaken { email: String },
 
     #[aerro(category = "system", code = "internal", error = "create_user.boom")]
@@ -18,12 +22,16 @@ fn main() {
         email: "alice@example.com".into(),
     };
     let status = err.into_status(&EncodeOptions::default());
-    println!("server emitted: code={:?} message={:?}", status.code(), status.message());
+    println!(
+        "server emitted: code={:?} message={:?}",
+        status.code(),
+        status.message()
+    );
     println!("details() length: {} bytes", status.details().len());
 
     // Client side: recover the typed variant.
     let recovered = status.into_aerro::<CreateUser>().unwrap();
-    match recovered.inner {
+    match recovered.into_inner() {
         CreateUser::EmailTaken { email } => println!("client recovered: email={email}"),
         CreateUser::Boom => unreachable!(),
     }

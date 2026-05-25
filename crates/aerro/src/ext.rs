@@ -2,14 +2,18 @@
 
 use tonic::Status;
 
-use crate::{Aerro, IntoStatus, RemoteError, ServiceFailure, TryFromStatus};
 use crate::wire::encode::EncodeOptions;
+use crate::{Aerro, IntoStatus, RemoteError, ServiceFailure, TryFromStatus};
 
 pub trait ResultIntoStatusExt<T, E: Aerro> {
+    // `tonic::Status` is ~176 bytes; we return it because tonic's RPC surface
+    // requires it. The lint can't be honored here without breaking interop.
+    #[allow(clippy::result_large_err)]
     fn into_status_ext(self, opts: &EncodeOptions) -> Result<T, Status>;
 }
 
 impl<T, E: Aerro> ResultIntoStatusExt<T, E> for Result<T, E> {
+    #[allow(clippy::result_large_err)]
     fn into_status_ext(self, opts: &EncodeOptions) -> Result<T, Status> {
         self.map_err(|e| e.into_status(opts))
     }

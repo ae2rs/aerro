@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use tonic::{Code, Status};
 
-use crate::{Aerro, Category, Frame, RemoteError, ServiceFailure, trace::TraceContext};
 use crate::wire::encode::EncodeOptions;
+use crate::{Aerro, Category, Frame, RemoteError, ServiceFailure, trace::TraceContext};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct JsonEnvelope {
@@ -69,7 +69,11 @@ mod hex_opt {
     }
     pub(super) fn hex_decode(s: &str, into: &mut [u8]) -> Result<(), String> {
         if s.len() != into.len() * 2 {
-            return Err(format!("expected {} hex chars, got {}", into.len() * 2, s.len()));
+            return Err(format!(
+                "expected {} hex chars, got {}",
+                into.len() * 2,
+                s.len()
+            ));
         }
         for (i, byte) in into.iter_mut().enumerate() {
             *byte = u8::from_str_radix(&s[i * 2..i * 2 + 2], 16).map_err(|e| e.to_string())?;
@@ -155,8 +159,16 @@ pub fn encode_json<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> St
         code: outer_code as i32 as u32,
         message: outer_msg.clone(),
         frames,
-        trace_id: if sf.trace.is_empty() { None } else { Some(sf.trace.trace_id) },
-        span_id: if sf.trace.is_empty() { None } else { Some(sf.trace.span_id) },
+        trace_id: if sf.trace.is_empty() {
+            None
+        } else {
+            Some(sf.trace.trace_id)
+        },
+        span_id: if sf.trace.is_empty() {
+            None
+        } else {
+            Some(sf.trace.span_id)
+        },
     };
     let bytes = serde_json::to_vec(&env).expect("JSON encode");
     Status::with_details(outer_code, outer_msg, bytes.into())
@@ -174,7 +186,11 @@ pub fn decode_json(status: &Status) -> Option<RemoteError> {
             f.rpc,
             Code::from(f.code as i32),
             f.message,
-            if f.location.is_empty() { None } else { Some(f.location) },
+            if f.location.is_empty() {
+                None
+            } else {
+                Some(f.location)
+            },
             category_from_str(&f.category),
         ));
     }
@@ -185,7 +201,7 @@ pub fn decode_json(status: &Status) -> Option<RemoteError> {
     if let Some(s) = env.span_id {
         trace.span_id = s;
     }
-    Some(RemoteError {
+    Some(RemoteError::from_parts(crate::remote::RemoteErrorParts {
         category,
         type_id: env.type_id,
         frames,
@@ -193,7 +209,7 @@ pub fn decode_json(status: &Status) -> Option<RemoteError> {
         outer_code: status.code(),
         outer_message: status.message().to_string(),
         payload_bytes: Bytes::new(),
-    })
+    }))
 }
 
 #[cfg(test)]

@@ -61,9 +61,7 @@ pub fn expand(args: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let service = args.service.unwrap_or_else(|| "unknown".into());
-    let rpc = args
-        .rpc
-        .unwrap_or_else(|| user_fn.sig.ident.to_string());
+    let rpc = args.rpc.unwrap_or_else(|| user_fn.sig.ident.to_string());
     let exposure_ident = match args.exposure.as_deref().unwrap_or("internal") {
         "internal" => format_ident!("Internal"),
         "trusted" => format_ident!("Trusted"),
@@ -156,6 +154,9 @@ pub fn expand(args: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #inner_fn
 
+        // `tonic::Status` is large; the lint flags `Result<_, Status>` but we
+        // must return that shape to satisfy tonic's RPC handler signature.
+        #[allow(clippy::result_large_err)]
         #(#outer_attrs)*
         #outer_vis #outer_asyncness fn #outer_ident #outer_generics ( #outer_inputs )
             -> ::core::result::Result<#ok_ty, ::tonic::Status>

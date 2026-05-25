@@ -15,8 +15,11 @@ pub fn expand(_args: TokenStream, item: TokenStream) -> TokenStream {
     let data_enum = match &input.data {
         Data::Enum(d) => d,
         _ => {
-            return syn::Error::new_spanned(&input, "#[aerro::operation] can only be applied to enums")
-                .to_compile_error();
+            return syn::Error::new_spanned(
+                &input,
+                "#[aerro::operation] can only be applied to enums",
+            )
+            .to_compile_error();
         }
     };
     let cfg = match parse_enum(input.ident.clone(), data_enum) {
@@ -49,14 +52,20 @@ fn strip_aerro_attrs(mut input: DeriveInput) -> DeriveInput {
             match &mut v.fields {
                 syn::Fields::Named(named) => {
                     for f in &mut named.named {
-                        f.attrs
-                            .retain(|a| !a.path().is_ident("aerro") && !a.path().is_ident("source") && !a.path().is_ident("from"));
+                        f.attrs.retain(|a| {
+                            !a.path().is_ident("aerro")
+                                && !a.path().is_ident("source")
+                                && !a.path().is_ident("from")
+                        });
                     }
                 }
                 syn::Fields::Unnamed(unnamed) => {
                     for f in &mut unnamed.unnamed {
-                        f.attrs
-                            .retain(|a| !a.path().is_ident("aerro") && !a.path().is_ident("source") && !a.path().is_ident("from"));
+                        f.attrs.retain(|a| {
+                            !a.path().is_ident("aerro")
+                                && !a.path().is_ident("source")
+                                && !a.path().is_ident("from")
+                        });
                     }
                 }
                 syn::Fields::Unit => {}

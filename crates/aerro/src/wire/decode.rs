@@ -30,18 +30,15 @@ pub fn decode<E: Aerro>(status: Status) -> Result<ServiceFailure<E>, RemoteError
     };
     let frames = decode_frames(&env.frames);
     let trace = decode_trace(&env.trace_id, &env.span_id);
-    Ok(ServiceFailure {
-        inner,
-        frames,
-        trace,
-    })
+    Ok(ServiceFailure::from_parts(inner, frames, trace))
 }
 
 fn into_remote_error(env: raw::Envelope, status: &Status) -> RemoteError {
-    let category = from_proto(raw::Category::try_from(env.category).unwrap_or(raw::Category::System));
+    let category =
+        from_proto(raw::Category::try_from(env.category).unwrap_or(raw::Category::System));
     let trace = decode_trace(&env.trace_id, &env.span_id);
     let frames = decode_frames(&env.frames);
-    RemoteError {
+    RemoteError::from_parts(crate::remote::RemoteErrorParts {
         category,
         type_id: env.type_id,
         frames,
@@ -49,11 +46,11 @@ fn into_remote_error(env: raw::Envelope, status: &Status) -> RemoteError {
         outer_code: status.code(),
         outer_message: status.message().to_string(),
         payload_bytes: Bytes::from(env.payload.to_vec()),
-    }
+    })
 }
 
 fn transport_remote_error(status: &Status) -> RemoteError {
-    RemoteError {
+    RemoteError::from_parts(crate::remote::RemoteErrorParts {
         category: Category::Transport,
         type_id: "aerro.transport".into(),
         frames: SmallVec::new(),
@@ -61,7 +58,7 @@ fn transport_remote_error(status: &Status) -> RemoteError {
         outer_code: status.code(),
         outer_message: status.message().to_string(),
         payload_bytes: Bytes::new(),
-    }
+    })
 }
 
 fn decode_frames(frames: &[raw::Frame]) -> SmallVec<[Frame; 4]> {

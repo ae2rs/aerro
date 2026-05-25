@@ -15,7 +15,11 @@ impl Exposure {
     /// Lower of two exposures. Used by the encoder to clamp a variant's
     /// declared exposure down to the route's minimum.
     pub fn clamp(self, route_min: Exposure) -> Exposure {
-        if (self as u8) < (route_min as u8) { self } else { route_min }
+        if (self as u8) < (route_min as u8) {
+            self
+        } else {
+            route_min
+        }
     }
 }
 
@@ -31,8 +35,14 @@ mod tests {
 
     #[test]
     fn clamp_never_upgrades() {
-        assert_eq!(Exposure::Internal.clamp(Exposure::Public), Exposure::Internal);
-        assert_eq!(Exposure::Public.clamp(Exposure::Internal), Exposure::Internal);
+        assert_eq!(
+            Exposure::Internal.clamp(Exposure::Public),
+            Exposure::Internal
+        );
+        assert_eq!(
+            Exposure::Public.clamp(Exposure::Internal),
+            Exposure::Internal
+        );
         assert_eq!(Exposure::Trusted.clamp(Exposure::Public), Exposure::Trusted);
     }
 }

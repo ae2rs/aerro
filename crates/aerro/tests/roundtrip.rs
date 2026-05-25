@@ -3,8 +3,8 @@
 
 #![cfg(feature = "macro")]
 
-use aerro::{Aerro, Category, Exposure, IntoStatus, StatusIntoResultExt};
 use aerro::wire::encode::EncodeOptions;
+use aerro::{Aerro, Category, Exposure, IntoStatus, StatusIntoResultExt};
 use tonic::Code;
 
 #[aerro::operation]
@@ -33,7 +33,7 @@ fn opts(exposure: Exposure) -> EncodeOptions {
 fn business_internal_roundtrips_payload() {
     let st = Suite::Biz("dup".into()).into_status(&opts(Exposure::Internal));
     let sf = st.into_aerro::<Suite>().unwrap();
-    match sf.inner {
+    match sf.into_inner() {
         Suite::Biz(s) => assert_eq!(s, "dup"),
         _ => panic!(),
     }
@@ -69,8 +69,13 @@ fn transport_trusted_keeps_message() {
 fn public_drops_frames_internal_keeps_them() {
     use aerro::{Frame, ServiceFailure};
     let mut sf: ServiceFailure<Suite> = Suite::Sys.into();
-    sf.frames
-        .push(Frame::local("svc", "rpc", Code::Internal, "m", Category::System));
+    sf.frames.push(Frame::local(
+        "svc",
+        "rpc",
+        Code::Internal,
+        "m",
+        Category::System,
+    ));
 
     let st_pub = sf.clone_for_test().into_status(&opts(Exposure::Public));
     let pub_decoded = st_pub.into_aerro::<Suite>().unwrap();

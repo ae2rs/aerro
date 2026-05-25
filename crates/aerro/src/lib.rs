@@ -22,9 +22,9 @@ pub mod traits;
 #[cfg(test)]
 pub(crate) mod test_support;
 
-pub use any::render_chain;
 #[cfg(any(feature = "anyhow", feature = "eyre"))]
 pub use any::AnyError;
+pub use any::render_chain;
 pub use category::Category;
 pub use error::{DecodeError, EncodeError};
 pub use exposure::Exposure;
@@ -45,8 +45,8 @@ pub mod wire;
 
 pub use ext::{ResultIntoStatusExt, StatusIntoResultExt};
 pub use traits::{IntoStatus, TryFromStatus};
-pub use wire::encode::{EncodeOptions, encode};
 pub use wire::decode::decode;
+pub use wire::encode::{EncodeOptions, encode};
 
 #[cfg(test)]
 mod tests {

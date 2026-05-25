@@ -7,11 +7,20 @@ use aerro::StatusIntoResultExt;
 
 #[aerro::operation]
 pub enum CreateUser {
-    #[aerro(category = "business", code = "already_exists", error = "email already taken: {email}")]
+    #[aerro(
+        category = "business",
+        code = "already_exists",
+        error = "email already taken: {email}"
+    )]
     EmailTaken { email: String },
 }
 
-#[aerro::handler(service = "create-user", rpc = "create", exposure = "public", max_frames = 8)]
+#[aerro::handler(
+    service = "create-user",
+    rpc = "create",
+    exposure = "public",
+    max_frames = 8
+)]
 async fn create_user(req: String) -> Result<String, CreateUser> {
     if req == "alice@x" {
         Err(CreateUser::EmailTaken { email: req })
@@ -32,7 +41,7 @@ async fn handler_error_becomes_status_with_envelope() {
     assert_eq!(st.code(), tonic::Code::AlreadyExists);
     // At Public exposure, frames are dropped but the typed envelope still ships.
     let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
-    match sf.inner {
+    match sf.into_inner() {
         CreateUser::EmailTaken { email } => assert_eq!(email, "alice@x"),
     }
 }

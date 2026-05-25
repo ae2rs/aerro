@@ -12,10 +12,7 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
     let display_arms = cfg.variants.iter().map(display_arm);
     let source_arms = cfg.variants.iter().map(source_arm);
 
-    let from_impls = cfg
-        .variants
-        .iter()
-        .filter_map(|v| from_impl(enum_ident, v));
+    let from_impls = cfg.variants.iter().filter_map(|v| from_impl(enum_ident, v));
 
     quote! {
         impl ::core::fmt::Display for #enum_ident {

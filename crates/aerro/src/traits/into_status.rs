@@ -2,8 +2,8 @@
 
 use tonic::Status;
 
-use crate::{Aerro, ServiceFailure};
 use crate::wire::encode::{EncodeOptions, encode};
+use crate::{Aerro, ServiceFailure};
 
 pub trait IntoStatus {
     fn into_status(self, opts: &EncodeOptions) -> Status;

@@ -3,16 +3,24 @@
 
 #![cfg(feature = "macro")]
 
-use aerro::{Aerro, Category, Exposure, IntoStatus, ServiceFailure, StatusIntoResultExt};
 use aerro::wire::encode::EncodeOptions;
+use aerro::{Aerro, Category, Exposure, IntoStatus, ServiceFailure, StatusIntoResultExt};
 use tonic::Code;
 
 #[aerro::operation]
 pub enum CreateUser {
-    #[aerro(category = "business", code = "already_exists", error = "email already taken: {email}")]
+    #[aerro(
+        category = "business",
+        code = "already_exists",
+        error = "email already taken: {email}"
+    )]
     EmailTaken { email: String },
 
-    #[aerro(category = "validation", code = "invalid_argument", error = "invalid name: {0}")]
+    #[aerro(
+        category = "validation",
+        code = "invalid_argument",
+        error = "invalid name: {0}"
+    )]
     InvalidName(String),
 
     #[aerro(category = "system", code = "internal", error = "create_user.boom")]
@@ -46,7 +54,9 @@ fn type_id_per_variant() {
 
 #[test]
 fn category_and_code_dispatch() {
-    let e = CreateUser::EmailTaken { email: "a@b".into() };
+    let e = CreateUser::EmailTaken {
+        email: "a@b".into(),
+    };
     assert_eq!(e.category(), Category::Business);
     assert_eq!(e.code(), Code::AlreadyExists);
     assert_eq!(e.exposure(), Exposure::Public);
@@ -60,7 +70,10 @@ fn category_and_code_dispatch() {
 #[test]
 fn display_renders_format_string() {
     assert_eq!(
-        CreateUser::EmailTaken { email: "a@b".into() }.to_string(),
+        CreateUser::EmailTaken {
+            email: "a@b".into()
+        }
+        .to_string(),
         "email already taken: a@b"
     );
     assert_eq!(
@@ -71,10 +84,12 @@ fn display_renders_format_string() {
 
 #[test]
 fn struct_variant_roundtrips_via_wire() {
-    let st = CreateUser::EmailTaken { email: "alice@x".into() }
-        .into_status(&EncodeOptions::default());
+    let st = CreateUser::EmailTaken {
+        email: "alice@x".into(),
+    }
+    .into_status(&EncodeOptions::default());
     let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
-    match sf.inner {
+    match sf.into_inner() {
         CreateUser::EmailTaken { email } => assert_eq!(email, "alice@x"),
         _ => panic!("wrong variant"),
     }
@@ -84,7 +99,7 @@ fn struct_variant_roundtrips_via_wire() {
 fn tuple_variant_roundtrips_via_wire() {
     let st = CreateUser::InvalidName("bob".into()).into_status(&EncodeOptions::default());
     let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
-    match sf.inner {
+    match sf.into_inner() {
         CreateUser::InvalidName(s) => assert_eq!(s, "bob"),
         _ => panic!("wrong variant"),
     }

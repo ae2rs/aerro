@@ -266,8 +266,16 @@ fn decode_payload_arm(v: &VariantCfg, type_id: &str) -> TokenStream {
             }
         }
     } else {
-        let names: Vec<&Ident> = plain_fields.iter().filter_map(|f| f.ident.as_ref()).collect();
-        let bindings: Vec<Ident> = names.iter().map(|_| format_ident!("__d")).enumerate().map(|(i, _)| format_ident!("__d{}", i)).collect();
+        let names: Vec<&Ident> = plain_fields
+            .iter()
+            .filter_map(|f| f.ident.as_ref())
+            .collect();
+        let bindings: Vec<Ident> = names
+            .iter()
+            .map(|_| format_ident!("__d"))
+            .enumerate()
+            .map(|(i, _)| format_ident!("__d{}", i))
+            .collect();
         let field_parts: Vec<TokenStream> = v
             .fields
             .iter()
