@@ -61,7 +61,3 @@ required-features = ["macro"]
 name = "exposure"
 required-features = ["macro"]
 
-[[example]]
-name = "handler"
-required-features = ["macro"]
-
