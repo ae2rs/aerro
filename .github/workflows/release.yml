@@ -39,5 +39,8 @@ jobs:
           gh release create "v$VERSION" \
             --title "v$VERSION" \
             --notes "See [commits](https://github.com/ae2rs/aerro/commits/v$VERSION) for changes."
+          # Ensure the release is published (not draft) — gh CLI can
+          # intermittently create draft releases with GITHUB_TOKEN.
+          gh release edit "v$VERSION" --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

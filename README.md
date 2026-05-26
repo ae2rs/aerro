@@ -28,8 +28,11 @@ Add `aerro` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-aerro = "0.2"
+aerro = "0.9"
 ```
+
+The `macro` feature — which provides `#[derive(Aerro)]` — is enabled by default,
+so no extra dependency or feature flag is needed.
 
 Define your errors, encode them into a `tonic::Status`, and recover them on the
 other side:
@@ -73,7 +76,7 @@ cargo run --example basic --features macro
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `macro` | ✓ | `#[derive(Aerro)]` proc-macro |
+| `macro` | ✓ | `#[derive(Aerro)]` proc-macro (enabled by default — no extra config needed) |
 | `tracing` | ✗ | Capture OTel trace/span IDs from the active `tracing` span |
 
 ## Status
