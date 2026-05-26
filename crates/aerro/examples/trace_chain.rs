@@ -8,7 +8,6 @@
 //! aggregating service (G) uses Forward to collect them. The final client
 //! receives a `RemoteError` with the full accumulated frame list.
 
-use aerro::wire::encode::EncodeOptions;
 use aerro::{Aerro, Category, Frame, ServiceFailure};
 use tonic::Code;
 
@@ -56,7 +55,7 @@ fn relay() -> Result<(), tonic::Status> {
                 "backend.unreachable",
                 Category::System,
             ));
-            Err(sf.encode(&EncodeOptions::default()))
+            Err(sf.encode())
         }
     }
 }
@@ -80,7 +79,7 @@ fn gateway() -> Result<(), tonic::Status> {
         "relay.pipeline_failed",
         Category::System,
     ));
-    Err(sf.encode(&EncodeOptions::default()))
+    Err(sf.encode())
 }
 
 // ── Client ───────────────────────────────────────────────────────────────────

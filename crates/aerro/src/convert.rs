@@ -19,18 +19,26 @@ impl<E: Aerro> From<ServiceFailure<E>> for Status {
     }
 }
 
-/// Extension trait that adds `.encode()` to every `E: Aerro`, mirroring the
-/// method already available on [`ServiceFailure<E>`].
+/// Extension trait that adds `.encode()` and `.encode_with_opts()` to every
+/// `E: Aerro`, mirroring the methods already available on [`ServiceFailure<E>`].
 pub trait AerroEncode: Aerro + Sized {
-    fn encode(self, opts: &EncodeOptions) -> Status {
-        ServiceFailure::new(self).encode(opts)
+    fn encode(self) -> Status {
+        self.encode_with_opts(&EncodeOptions::default())
+    }
+
+    fn encode_with_opts(self, opts: &EncodeOptions) -> Status {
+        ServiceFailure::new(self).encode_with_opts(opts)
     }
 }
 
 impl<E: Aerro> AerroEncode for E {}
 
 impl<E: Aerro> ServiceFailure<E> {
-    pub fn encode(self, opts: &EncodeOptions) -> Status {
+    pub fn encode(self) -> Status {
+        self.encode_with_opts(&EncodeOptions::default())
+    }
+
+    pub fn encode_with_opts(self, opts: &EncodeOptions) -> Status {
         crate::wire::encode::encode(&self, opts)
     }
 }
@@ -39,13 +47,12 @@ impl<E: Aerro> ServiceFailure<E> {
 mod tests {
     use super::AerroEncode;
     use crate::test_support::Boom;
-    use crate::wire::encode::EncodeOptions;
     use crate::{RemoteError, ServiceFailure};
     use std::convert::TryFrom;
 
     #[test]
     fn error_encode_method_roundtrips() {
-        let status = Boom { x: 99 }.encode(&EncodeOptions::default());
+        let status = Boom { x: 99 }.encode();
         let recovered = ServiceFailure::<Boom>::try_from(status).unwrap();
         assert_eq!(recovered.inner().x, 99);
     }
@@ -53,7 +60,7 @@ mod tests {
     #[test]
     fn try_from_status_recovers_typed_failure() {
         let sf = ServiceFailure::new(Boom { x: 1 });
-        let status: tonic::Status = sf.encode(&EncodeOptions::default());
+        let status: tonic::Status = sf.encode();
         let recovered = ServiceFailure::<Boom>::try_from(status).unwrap();
         assert_eq!(recovered.inner().x, 1);
     }
@@ -76,7 +83,7 @@ mod tests {
     #[test]
     fn encode_with_opts_roundtrips() {
         let sf = ServiceFailure::new(Boom { x: 3 });
-        let status = sf.encode(&EncodeOptions::default());
+        let status = sf.encode();
         let recovered: ServiceFailure<Boom> = status.try_into().unwrap();
         assert_eq!(recovered.inner().x, 3);
     }

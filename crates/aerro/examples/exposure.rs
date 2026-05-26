@@ -17,7 +17,7 @@ fn show(label: &str, exposure: Exposure) {
     let err = DbError::Unreachable {
         host: "prod-shard-42.internal".into(),
     };
-    let st = err.encode(&EncodeOptions {
+    let st = err.encode_with_opts(&EncodeOptions {
         exposure,
         max_frames: 16,
     });

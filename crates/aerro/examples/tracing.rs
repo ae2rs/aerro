@@ -4,7 +4,7 @@
 //!
 //! Run with: cargo run --example tracing --features macro,tracing
 
-use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
+use aerro::{Aerro, AerroEncode, ServiceFailure};
 use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -34,9 +34,9 @@ fn main() {
         let span = tracing::info_span!("handle_get_user");
         let status = {
             let _enter = span.enter();
-            ApiError::UserNotFound.into_status_default()
+            ApiError::UserNotFound.encode()
         };
-        let sf = status.into_aerro::<ApiError>().unwrap();
+        let sf = ServiceFailure::<ApiError>::try_from(status).unwrap();
         let t = sf.trace();
         (t.trace_id, t.span_id)
         // span dropped here → SimpleSpanProcessor exports it synchronously

@@ -32,7 +32,7 @@ fn bench_encode(c: &mut Criterion) {
                 x: 42,
                 y: "hello-world".into(),
             };
-            black_box(v.encode(black_box(&opts)));
+            black_box(v.encode_with_opts(black_box(&opts)));
         });
     });
 
@@ -47,7 +47,7 @@ fn bench_decode(c: &mut Criterion) {
         x: 42,
         y: "hello-world".into(),
     }
-    .encode(&opts);
+    .encode_with_opts(&opts);
 
     group.bench_function("aerro_bincode", |b| {
         b.iter(|| {

@@ -19,7 +19,7 @@ pub enum Api {
 
 #[test]
 fn bare_tonic_consumer_sees_correct_code_and_message_internal() {
-    let st = Api::NotFound.encode(&EncodeOptions {
+    let st = Api::NotFound.encode_with_opts(&EncodeOptions {
         exposure: Exposure::Internal,
         max_frames: 16,
     });
@@ -30,7 +30,7 @@ fn bare_tonic_consumer_sees_correct_code_and_message_internal() {
 
 #[test]
 fn bare_tonic_consumer_sees_redacted_message_at_public_for_system() {
-    let st = Api::Boom.encode(&EncodeOptions {
+    let st = Api::Boom.encode_with_opts(&EncodeOptions {
         exposure: Exposure::Public,
         max_frames: 16,
     });
@@ -40,7 +40,7 @@ fn bare_tonic_consumer_sees_redacted_message_at_public_for_system() {
 
 #[test]
 fn details_bytes_are_additive_not_required() {
-    let st = Api::NotFound.encode(&EncodeOptions::default());
+    let st = Api::NotFound.encode();
     // The details() carry the aerro envelope, but the consumer is free to
     // ignore them — code + message alone are well-defined.
     assert!(!st.details().is_empty());

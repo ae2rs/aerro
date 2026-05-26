@@ -1,6 +1,5 @@
 //! One enum, one round-trip across the wire — the simplest possible aerro usage.
 
-use aerro::wire::encode::EncodeOptions;
 use aerro::{Aerro, AerroEncode, ServiceFailure};
 
 #[derive(Debug, aerro::Aerro)]
@@ -20,7 +19,7 @@ fn main() {
     let err = CreateUserError::EmailTaken {
         email: "alice@example.com".into(),
     };
-    let status = err.encode(&EncodeOptions::default());
+    let status = err.encode();
     println!(
         "server emitted: code={:?} message={:?}",
         status.code(),
@@ -30,7 +29,7 @@ fn main() {
 
     // Server side: same thing with default options.
     let err2 = CreateUserError::Boom;
-    let status2 = err2.encode(&EncodeOptions::default());
+    let status2 = err2.encode();
     println!(
         "server emitted (default): code={:?} message={:?}",
         status2.code(),
