@@ -13,6 +13,7 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
     let source_arms = cfg.variants.iter().map(source_arm);
 
     let from_impls = cfg.variants.iter().filter_map(|v| from_impl(enum_ident, v));
+    let forward_impls = cfg.variants.iter().filter_map(|v| forward_impl(enum_ident, v));
 
     quote! {
         impl ::core::fmt::Display for #enum_ident {
@@ -32,6 +33,7 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
         }
 
         #(#from_impls)*
+        #(#forward_impls)*
     }
 }
 
@@ -98,7 +100,7 @@ fn source_arm(v: &VariantCfg) -> TokenStream {
     let src_idx = v
         .fields
         .iter()
-        .position(|f| matches!(f.role, FieldRole::Source | FieldRole::From));
+        .position(|f| matches!(f.role, FieldRole::Source | FieldRole::From | FieldRole::Forward));
 
     if let Some(idx) = src_idx {
         if v.is_tuple {
@@ -165,6 +167,31 @@ fn from_impl(enum_ident: &Ident, v: &VariantCfg) -> Option<TokenStream> {
         impl ::core::convert::From<#ty> for #enum_ident {
             fn from(__from: #ty) -> Self {
                 #ctor
+            }
+        }
+    })
+}
+
+fn forward_impl(enum_ident: &Ident, v: &VariantCfg) -> Option<TokenStream> {
+    let forward_field = v.fields.iter().find(|f| f.role == FieldRole::Forward)?;
+    let variant = &v.ident;
+    let ty = &forward_field.ty;
+
+    let ctor = if v.is_tuple {
+        quote! { #enum_ident::#variant(__inner) }
+    } else if let Some(name) = &forward_field.ident {
+        quote! { #enum_ident::#variant { #name: __inner } }
+    } else {
+        return None;
+    };
+
+    Some(quote! {
+        impl ::core::convert::From<::aerro::ServiceFailure<#ty>>
+            for ::aerro::ServiceFailure<#enum_ident>
+        {
+            fn from(__sf: ::aerro::ServiceFailure<#ty>) -> Self {
+                let (__inner, __frames, __trace) = __sf.into_parts();
+                ::aerro::ServiceFailure::from_parts(#ctor, __frames, __trace)
             }
         }
     })
