@@ -14,6 +14,14 @@ use crate::{Aerro, ServiceFailure};
 pub trait IntoStatus {
     /// Encode `self` into a `tonic::Status` using the given options.
     fn into_status(self, opts: &EncodeOptions) -> Status;
+
+    /// Encode `self` into a `tonic::Status` using [`EncodeOptions::default()`].
+    fn into_status_default(self) -> Status
+    where
+        Self: Sized,
+    {
+        self.into_status(&EncodeOptions::default())
+    }
 }
 
 impl<E: Aerro> IntoStatus for E {

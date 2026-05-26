@@ -10,7 +10,6 @@
 //!
 //! ```rust
 //! use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
-//! use aerro::wire::encode::EncodeOptions;
 //!
 //! #[derive(Debug, aerro::Aerro)]
 //! pub enum CreateUserError {
@@ -23,7 +22,7 @@
 //!
 //! // Server side
 //! let err = CreateUserError::EmailTaken { email: "alice@example.com".into() };
-//! let status = err.into_status(&EncodeOptions::default());
+//! let status = err.into_status_default();
 //!
 //! // Client side — recover the typed variant
 //! let recovered = status.into_aerro::<CreateUserError>().unwrap();
