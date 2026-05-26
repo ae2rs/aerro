@@ -10,14 +10,11 @@ use smallvec::SmallVec;
 
 use crate::{Aerro, Frame, trace::TraceContext};
 
-/// Boxed state of [`ServiceFailure`]. Exposed only so that field access
-/// through `Deref`/`DerefMut` (`sf.inner`, `sf.frames`, `sf.trace`) names a
-/// public type; you almost never write this name directly.
 #[derive(Debug)]
-pub struct ServiceFailureInner<E: Aerro> {
-    pub inner: E,
-    pub frames: SmallVec<[Frame; 4]>,
-    pub trace: TraceContext,
+pub(crate) struct ServiceFailureInner<E: Aerro> {
+    pub(crate) inner: E,
+    pub(crate) frames: SmallVec<[Frame; 4]>,
+    pub(crate) trace: TraceContext,
 }
 
 #[derive(Debug)]
@@ -64,18 +61,29 @@ impl<E: Aerro> ServiceFailure<E> {
         } = *self.state;
         (inner, frames, trace)
     }
-}
 
-impl<E: Aerro> std::ops::Deref for ServiceFailure<E> {
-    type Target = ServiceFailureInner<E>;
-    fn deref(&self) -> &ServiceFailureInner<E> {
-        &self.state
+    pub fn inner(&self) -> &E {
+        &self.state.inner
     }
-}
 
-impl<E: Aerro> std::ops::DerefMut for ServiceFailure<E> {
-    fn deref_mut(&mut self) -> &mut ServiceFailureInner<E> {
-        &mut self.state
+    pub fn inner_mut(&mut self) -> &mut E {
+        &mut self.state.inner
+    }
+
+    pub fn frames(&self) -> &SmallVec<[Frame; 4]> {
+        &self.state.frames
+    }
+
+    pub fn frames_mut(&mut self) -> &mut SmallVec<[Frame; 4]> {
+        &mut self.state.frames
+    }
+
+    pub fn trace(&self) -> &TraceContext {
+        &self.state.trace
+    }
+
+    pub fn trace_mut(&mut self) -> &mut TraceContext {
+        &mut self.state.trace
     }
 }
 
@@ -105,8 +113,8 @@ mod tests {
     #[test]
     fn from_e_constructs_failure_with_empty_frames() {
         let sf: ServiceFailure<Boom> = Boom { x: 1 }.into();
-        assert!(sf.frames.is_empty());
-        assert!(sf.trace.is_empty());
+        assert!(sf.frames().is_empty());
+        assert!(sf.trace().is_empty());
     }
 
     #[test]

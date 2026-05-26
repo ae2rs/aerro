@@ -44,7 +44,7 @@ fn into_remote_error(env: raw::Envelope, status: &Status) -> RemoteError {
         from_proto(raw::Category::try_from(env.category).unwrap_or(raw::Category::System));
     let trace = decode_trace(&env.trace_id, &env.span_id);
     let frames = decode_frames(&env.frames);
-    RemoteError::from_parts(crate::remote::RemoteErrorParts {
+    RemoteError::from_parts(crate::remote::RemoteErrorInner {
         category,
         type_id: env.type_id,
         frames,
@@ -56,7 +56,7 @@ fn into_remote_error(env: raw::Envelope, status: &Status) -> RemoteError {
 }
 
 fn transport_remote_error(status: &Status) -> RemoteError {
-    RemoteError::from_parts(crate::remote::RemoteErrorParts {
+    RemoteError::from_parts(crate::remote::RemoteErrorInner {
         category: Category::Transport,
         type_id: "aerro.transport".into(),
         frames: SmallVec::new(),
@@ -116,7 +116,7 @@ mod tests {
         let sf: ServiceFailure<Boom> = Boom { x: 13 }.into();
         let st = encode(&sf, &EncodeOptions::default());
         let back = decode::<Boom>(st).expect("known type round-trips");
-        assert_eq!(back.inner.x, 13);
+        assert_eq!(back.inner().x, 13);
     }
 
     #[test]
@@ -150,7 +150,7 @@ mod tests {
             }
         }
         let r = decode::<Other>(st).expect_err("type_id mismatch");
-        assert_eq!(r.type_id, "toy.boom");
+        assert_eq!(r.type_id(), "toy.boom");
         assert_eq!(r.downcast::<Boom>().unwrap().x, 5);
     }
 
@@ -158,7 +158,7 @@ mod tests {
     fn bare_status_becomes_transport_remote_error() {
         let st = Status::unavailable("backend down");
         let r = decode::<Boom>(st).err().unwrap();
-        assert_eq!(r.category, Category::Transport);
-        assert_eq!(r.outer_code, Code::Unavailable);
+        assert_eq!(r.category(), Category::Transport);
+        assert_eq!(r.outer_code(), Code::Unavailable);
     }
 }

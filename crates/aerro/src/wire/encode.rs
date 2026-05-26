@@ -36,25 +36,25 @@ pub fn encode<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> Status 
     // route is what governs what leaves the process.
     let route = opts.exposure;
 
-    let outer_code = sf.inner.code();
-    let outer_msg = redact_message(&sf.inner, route);
+    let outer_code = sf.inner().code();
+    let outer_msg = redact_message(sf.inner(), route);
 
     let mut payload = Vec::new();
-    if let Err(e) = sf.inner.encode_payload(route, &mut payload) {
+    if let Err(e) = sf.inner().encode_payload(route, &mut payload) {
         return Status::new(Code::Internal, format!("aerro: encode failed: {e}"));
     }
 
     let wire_frames = if route == Exposure::Public {
         Vec::new()
     } else {
-        elide_to_cap(&sf.frames, opts.max_frames)
+        elide_to_cap(sf.frames(), opts.max_frames)
     };
 
     let env = raw::Envelope {
-        category: to_proto(sf.inner.category()) as i32,
-        type_id: Aerro::type_id(&sf.inner).to_string(),
-        trace_id: sf.trace.trace_id.to_vec(),
-        span_id: sf.trace.span_id.to_vec(),
+        category: to_proto(sf.inner().category()) as i32,
+        type_id: Aerro::type_id(sf.inner()).to_string(),
+        trace_id: sf.trace().trace_id.to_vec(),
+        span_id: sf.trace().span_id.to_vec(),
         frames: wire_frames,
         payload,
         version: ENVELOPE_VERSION,
@@ -142,7 +142,7 @@ mod tests {
     fn elision_keeps_cap() {
         let mut sf: ServiceFailure<Boom> = Boom { x: 0 }.into();
         for i in 0..20u32 {
-            sf.frames.push(Frame::local(
+            sf.frames_mut().push(Frame::local(
                 "svc",
                 "rpc",
                 Code::Internal,
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn public_drops_frames() {
         let mut sf: ServiceFailure<Boom> = Boom { x: 0 }.into();
-        sf.frames.push(Frame::local(
+        sf.frames_mut().push(Frame::local(
             "svc",
             "rpc",
             Code::Internal,

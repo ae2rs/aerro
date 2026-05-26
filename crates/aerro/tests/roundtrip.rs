@@ -45,7 +45,7 @@ fn validation_public_roundtrips_payload_and_keeps_message() {
     assert_eq!(st.code(), Code::InvalidArgument);
     assert_eq!(st.message(), "val: bad"); // Validation is safe at Public.
     let sf = st.into_aerro::<Suite>().unwrap();
-    assert!(matches!(sf.inner, Suite::Val(_)));
+    assert!(matches!(sf.inner(), Suite::Val(_)));
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn system_public_redacts_message_but_payload_still_decodes() {
     assert_eq!(st.message(), "internal error");
     // The envelope still carries the type_id and decodes typed:
     let sf = st.into_aerro::<Suite>().unwrap();
-    assert_eq!(sf.inner.category(), Category::System);
+    assert_eq!(sf.inner().category(), Category::System);
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn transport_trusted_keeps_message() {
 fn public_drops_frames_internal_keeps_them() {
     use aerro::{Frame, ServiceFailure};
     let mut sf: ServiceFailure<Suite> = Suite::Sys.into();
-    sf.frames.push(Frame::local(
+    sf.frames_mut().push(Frame::local(
         "svc",
         "rpc",
         Code::Internal,
@@ -79,11 +79,11 @@ fn public_drops_frames_internal_keeps_them() {
 
     let st_pub = sf.clone_for_test().into_status(&opts(Exposure::Public));
     let pub_decoded = st_pub.into_aerro::<Suite>().unwrap();
-    assert!(pub_decoded.frames.is_empty(), "Public must drop frames");
+    assert!(pub_decoded.frames().is_empty(), "Public must drop frames");
 
     let st_int = sf.into_status(&opts(Exposure::Internal));
     let int_decoded = st_int.into_aerro::<Suite>().unwrap();
-    assert_eq!(int_decoded.frames.len(), 1, "Internal must keep frames");
+    assert_eq!(int_decoded.frames().len(), 1, "Internal must keep frames");
 }
 
 // Helper because ServiceFailure isn't Clone; reconstruct manually.
@@ -92,17 +92,17 @@ trait CloneForTest {
 }
 impl CloneForTest for aerro::ServiceFailure<Suite> {
     fn clone_for_test(&self) -> Self {
-        let mut clone: aerro::ServiceFailure<Suite> = match &self.inner {
+        let mut clone: aerro::ServiceFailure<Suite> = match self.inner() {
             Suite::Biz(s) => Suite::Biz(s.clone()),
             Suite::Val(s) => Suite::Val(s.clone()),
             Suite::Sys => Suite::Sys,
             Suite::Trans => Suite::Trans,
         }
         .into();
-        for f in &self.frames {
-            clone.frames.push(f.clone());
+        for f in self.frames() {
+            clone.frames_mut().push(f.clone());
         }
-        clone.trace = self.trace;
+        *clone.trace_mut() = *self.trace();
         clone
     }
 }
