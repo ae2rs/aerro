@@ -24,7 +24,7 @@ pub enum Pipeline {
 /// Middle service — plain typed errors, no Forward (so Gateway can decode them).
 #[derive(Debug, Aerro)]
 pub enum Relay {
-    #[aerro(category = System, code = Internal, error = "relay.pipeline_failed")]
+    #[aerro(category = System, code = Internal)]
     PipelineFailed,
 }
 
@@ -33,7 +33,7 @@ pub enum Relay {
 /// frame chain is preserved.
 #[derive(Debug, Aerro)]
 pub enum Gateway {
-    #[aerro(category = System, code = Internal, error = "gateway.relay_failed")]
+    #[aerro(category = System, code = Internal)]
     RelayFailed(#[aerro(forward)] Relay),
 }
 

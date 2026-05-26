@@ -12,7 +12,7 @@ pub enum CreateUser {
     )]
     EmailTaken { email: String },
 
-    #[aerro(category = System, code = Internal, error = "create_user.boom")]
+    #[aerro(category = System, code = Internal)]
     Boom,
 }
 
