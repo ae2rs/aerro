@@ -88,7 +88,7 @@ pub fn emit_aerro_impl(cfg: &EnumCfg) -> TokenStream {
                 }
             }
 
-            fn encode_payload(&self, __route: ::aerro::Exposure, __buf: &mut ::std::vec::Vec<u8>) {
+            fn encode_payload(&self, __route: ::aerro::Exposure, __buf: &mut ::std::vec::Vec<u8>) -> ::core::result::Result<(), ::aerro::EncodeError> {
                 let _ = __route;
                 match self {
                     #(#encode_arms)*
@@ -132,7 +132,7 @@ fn encode_payload_arm(v: &VariantCfg) -> TokenStream {
     if v.fields.is_empty() {
         return quote! {
             Self::#variant => {
-                // No payload to encode.
+                ::core::result::Result::Ok(())
             }
         };
     }
@@ -156,11 +156,10 @@ fn encode_payload_arm(v: &VariantCfg) -> TokenStream {
         quote! {
             Self::#variant #pat => {
                 let __tup = ( #(#payload_exprs ,)* );
-                if let ::core::result::Result::Ok(__bytes) =
-                    ::bincode::encode_to_vec(&__tup, ::bincode::config::standard())
-                {
-                    __buf.extend_from_slice(&__bytes);
-                }
+                let __bytes = ::bincode::encode_to_vec(&__tup, ::bincode::config::standard())
+                    .map_err(|e| ::aerro::EncodeError(e.to_string()))?;
+                __buf.extend_from_slice(&__bytes);
+                ::core::result::Result::Ok(())
             }
         }
     } else {
@@ -177,11 +176,10 @@ fn encode_payload_arm(v: &VariantCfg) -> TokenStream {
         quote! {
             Self::#variant #pat => {
                 let __tup = ( #(#payload_exprs ,)* );
-                if let ::core::result::Result::Ok(__bytes) =
-                    ::bincode::encode_to_vec(&__tup, ::bincode::config::standard())
-                {
-                    __buf.extend_from_slice(&__bytes);
-                }
+                let __bytes = ::bincode::encode_to_vec(&__tup, ::bincode::config::standard())
+                    .map_err(|e| ::aerro::EncodeError(e.to_string()))?;
+                __buf.extend_from_slice(&__bytes);
+                ::core::result::Result::Ok(())
             }
         }
     }
