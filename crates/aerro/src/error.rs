@@ -10,8 +10,8 @@ pub enum DecodeError {
     UnknownTypeId(String),
     #[error("bincode decode: {0}")]
     Payload(String),
-    #[error("prost decode: {0}")]
-    Prost(String),
+    #[error("wire decode: {0}")]
+    Wire(String),
 }
 
 #[derive(Debug, thiserror::Error)]

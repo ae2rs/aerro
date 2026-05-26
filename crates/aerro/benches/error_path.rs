@@ -26,7 +26,7 @@ fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("encode");
     let opts = EncodeOptions::default();
 
-    group.bench_function("aerro_prost", |b| {
+    group.bench_function("aerro_bincode", |b| {
         b.iter(|| {
             let v = Bench::Item {
                 x: 42,
@@ -43,18 +43,18 @@ fn bench_encode(c: &mut Criterion) {
 fn bench_decode(c: &mut Criterion) {
     let mut group = c.benchmark_group("decode");
     let opts = EncodeOptions::default();
-    let prost_status = Bench::Item {
+    let encoded_status = Bench::Item {
         x: 42,
         y: "hello-world".into(),
     }
     .into_status(&opts);
 
-    group.bench_function("aerro_prost", |b| {
+    group.bench_function("aerro_bincode", |b| {
         b.iter(|| {
             let st = tonic::Status::with_details(
-                prost_status.code(),
-                prost_status.message(),
-                bytes::Bytes::copy_from_slice(prost_status.details()),
+                encoded_status.code(),
+                encoded_status.message(),
+                bytes::Bytes::copy_from_slice(encoded_status.details()),
             );
             black_box(st.into_aerro::<Bench>().unwrap());
         });
