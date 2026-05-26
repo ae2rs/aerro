@@ -1,7 +1,7 @@
 //! `ServiceFailure<E>` → `tonic::Status` encoding — see spec §6, §9.
 
 use prost::Message;
-use tonic::Status;
+use tonic::{Code, Status};
 
 use crate::{Aerro, Category, Exposure, Frame, ServiceFailure};
 
@@ -40,7 +40,9 @@ pub fn encode<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> Status 
     let outer_msg = redact_message(&sf.inner, route);
 
     let mut payload = Vec::new();
-    sf.inner.encode_payload(route, &mut payload);
+    if let Err(e) = sf.inner.encode_payload(route, &mut payload) {
+        return Status::new(Code::Internal, format!("aerro: encode failed: {e}"));
+    }
 
     let wire_frames = if route == Exposure::Public {
         Vec::new()

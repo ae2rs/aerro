@@ -2,7 +2,10 @@
 
 use tonic::Code;
 
-use crate::{Category, Exposure, error::DecodeError};
+use crate::{
+    Category, Exposure,
+    error::{DecodeError, EncodeError},
+};
 
 /// Universal trait implemented by every typed error.
 ///
@@ -31,7 +34,7 @@ pub trait Aerro: std::error::Error + Send + Sync + 'static {
     /// Encode the variant's payload into bincode bytes. `route` is the
     /// exposure level of the destination; fields marked `#[aerro(redact)]`
     /// are replaced with `Default::default()` whenever `route != Internal`.
-    fn encode_payload(&self, route: Exposure, buf: &mut Vec<u8>);
+    fn encode_payload(&self, route: Exposure, buf: &mut Vec<u8>) -> Result<(), EncodeError>;
 
     /// Decode a typed variant from a `type_id` + bincode bytes.
     fn decode_payload(type_id: &str, bytes: &[u8]) -> Result<Self, DecodeError>
