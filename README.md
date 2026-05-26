@@ -74,7 +74,7 @@ cargo run --example basic --features macro
 | Flag | Default | Description |
 |------|---------|-------------|
 | `macro` | ✓ | `#[derive(Aerro)]` proc-macro |
-| `tracing` | ✓ | Capture OTel trace/span IDs from the active `tracing` span |
+| `tracing` | ✗ | Capture OTel trace/span IDs from the active `tracing` span |
 
 ## Status
 
