@@ -109,5 +109,5 @@ fn tuple_variant_roundtrips_via_wire() {
 fn unit_variant_roundtrips_via_wire() {
     let st = CreateUser::Boom.into_status(&EncodeOptions::default());
     let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
-    assert!(matches!(sf.inner, CreateUser::Boom));
+    assert!(matches!(sf.inner(), CreateUser::Boom));
 }
