@@ -2,14 +2,12 @@
 //! [`encode`](crate::wire::encode::encode).
 
 use bytes::Bytes;
-use prost::Message;
 use smallvec::SmallVec;
 use tonic::{Code, Status};
 
 use crate::{Aerro, Category, Frame, RemoteError, ServiceFailure, trace::TraceContext};
 
-use super::envelope::from_proto;
-use super::raw;
+use super::envelope::{ENVELOPE_VERSION, WireEnvelope, WireFrame};
 
 /// Decode a `tonic::Status` into a [`ServiceFailure<E>`](crate::ServiceFailure).
 ///
@@ -21,10 +19,15 @@ pub fn decode<E: Aerro>(status: Status) -> Result<ServiceFailure<E>, RemoteError
     if details.is_empty() {
         return Err(transport_remote_error(&status));
     }
-    let env = match raw::Envelope::decode(details) {
-        Ok(e) => e,
-        Err(_) => return Err(transport_remote_error(&status)),
-    };
+    let (env, _): (WireEnvelope, _) =
+        match bincode::decode_from_slice(details, bincode::config::standard()) {
+            Ok(pair) => pair,
+            Err(_) => return Err(transport_remote_error(&status)),
+        };
+
+    if env.version != ENVELOPE_VERSION {
+        return Err(transport_remote_error(&status));
+    }
 
     if !E::TYPE_IDS.contains(&env.type_id.as_str()) {
         return Err(into_remote_error(env, &status));
@@ -39,9 +42,8 @@ pub fn decode<E: Aerro>(status: Status) -> Result<ServiceFailure<E>, RemoteError
     Ok(ServiceFailure::from_parts(inner, frames, trace))
 }
 
-fn into_remote_error(env: raw::Envelope, status: &Status) -> RemoteError {
-    let category =
-        from_proto(raw::Category::try_from(env.category).unwrap_or(raw::Category::System));
+fn into_remote_error(env: WireEnvelope, status: &Status) -> RemoteError {
+    let category = Category::try_from(env.category).unwrap_or(Category::System);
     let trace = decode_trace(&env.trace_id, &env.span_id);
     let frames = decode_frames(&env.frames);
     RemoteError::from_parts(crate::remote::RemoteErrorInner {
@@ -51,7 +53,7 @@ fn into_remote_error(env: raw::Envelope, status: &Status) -> RemoteError {
         trace,
         outer_code: status.code(),
         outer_message: status.message().to_string(),
-        payload_bytes: Bytes::from(env.payload.to_vec()),
+        payload_bytes: Bytes::from(env.payload),
     })
 }
 
@@ -67,10 +69,10 @@ fn transport_remote_error(status: &Status) -> RemoteError {
     })
 }
 
-fn decode_frames(frames: &[raw::Frame]) -> SmallVec<[Frame; 4]> {
+fn decode_frames(frames: &[WireFrame]) -> SmallVec<[Frame; 4]> {
     let mut out = SmallVec::new();
     for f in frames {
-        let cat = from_proto(raw::Category::try_from(f.category).unwrap_or(raw::Category::System));
+        let cat = Category::try_from(f.category).unwrap_or(Category::System);
         let code = code_from_u32(f.code);
         let loc = if f.location.is_empty() {
             None
@@ -90,18 +92,13 @@ fn decode_frames(frames: &[raw::Frame]) -> SmallVec<[Frame; 4]> {
 }
 
 fn code_from_u32(c: u32) -> Code {
-    // tonic::Code is `#[repr(i32)]` over the gRPC code numbers 0..=16.
     Code::from(c as i32)
 }
 
-fn decode_trace(trace_id: &[u8], span_id: &[u8]) -> TraceContext {
+fn decode_trace(trace_id: &[u8; 16], span_id: &[u8; 8]) -> TraceContext {
     let mut t = TraceContext::default();
-    if trace_id.len() == 16 {
-        t.trace_id.copy_from_slice(trace_id);
-    }
-    if span_id.len() == 8 {
-        t.span_id.copy_from_slice(span_id);
-    }
+    t.trace_id.copy_from_slice(trace_id);
+    t.span_id.copy_from_slice(span_id);
     t
 }
 

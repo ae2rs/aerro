@@ -1,12 +1,10 @@
 //! `ServiceFailure<E>` → `tonic::Status` encoding — see spec §6, §9.
 
-use prost::Message;
 use tonic::{Code, Status};
 
 use crate::{Aerro, Category, Exposure, Frame, ServiceFailure};
 
-use super::envelope::{ENVELOPE_VERSION, to_proto};
-use super::raw;
+use super::envelope::{ENVELOPE_VERSION, WireEnvelope, WireFrame};
 
 /// Encoder configuration.
 #[derive(Debug, Copy, Clone)]
@@ -29,11 +27,8 @@ impl Default for EncodeOptions {
 }
 
 /// Encode a typed failure into a `tonic::Status` whose `details()` carries
-/// the prost-encoded aerro envelope.
+/// the bincode-encoded aerro envelope.
 pub fn encode<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> Status {
-    // Stripping is keyed on the *route* exposure (the operator's contract with
-    // its callers). The variant's declared exposure is informational in v1 — the
-    // route is what governs what leaves the process.
     let route = opts.exposure;
 
     let outer_code = sf.inner().code();
@@ -50,16 +45,17 @@ pub fn encode<E: Aerro>(sf: &ServiceFailure<E>, opts: &EncodeOptions) -> Status 
         elide_to_cap(sf.frames(), opts.max_frames)
     };
 
-    let env = raw::Envelope {
-        category: to_proto(sf.inner().category()) as i32,
+    let trace = sf.trace();
+    let env = WireEnvelope {
+        version: ENVELOPE_VERSION,
+        category: u8::from(sf.inner().category()),
         type_id: Aerro::type_id(sf.inner()).to_string(),
-        trace_id: sf.trace().trace_id.to_vec(),
-        span_id: sf.trace().span_id.to_vec(),
+        trace_id: trace.trace_id,
+        span_id: trace.span_id,
         frames: wire_frames,
         payload,
-        version: ENVELOPE_VERSION,
     };
-    let bytes = env.encode_to_vec();
+    let bytes = bincode::encode_to_vec(&env, bincode::config::standard()).expect("bincode encode");
 
     Status::with_details(outer_code, outer_msg, bytes.into())
 }
@@ -72,7 +68,7 @@ fn redact_message<E: Aerro>(inner: &E, route: Exposure) -> String {
     }
 }
 
-fn elide_to_cap(frames: &[Frame], cap: u8) -> Vec<raw::Frame> {
+fn elide_to_cap(frames: &[Frame], cap: u8) -> Vec<WireFrame> {
     let cap = cap.max(1) as usize;
     if frames.len() <= cap {
         return frames.iter().map(to_wire_frame).collect();
@@ -82,13 +78,13 @@ fn elide_to_cap(frames: &[Frame], cap: u8) -> Vec<raw::Frame> {
     let n_elided = frames.len() - keep_front - keep_back;
     let mut out = Vec::with_capacity(cap);
     out.extend(frames[..keep_front].iter().map(to_wire_frame));
-    out.push(raw::Frame {
+    out.push(WireFrame {
         service: "...".into(),
         rpc: "elided".into(),
         code: 0,
         message: format!("{} frames elided", n_elided),
         location: String::new(),
-        category: to_proto(frames[keep_front].category) as i32,
+        category: u8::from(frames[keep_front].category),
     });
     if keep_back > 0 {
         out.extend(frames[frames.len() - keep_back..].iter().map(to_wire_frame));
@@ -96,8 +92,8 @@ fn elide_to_cap(frames: &[Frame], cap: u8) -> Vec<raw::Frame> {
     out
 }
 
-fn to_wire_frame(f: &Frame) -> raw::Frame {
-    raw::Frame {
+fn to_wire_frame(f: &Frame) -> WireFrame {
+    WireFrame {
         service: f.service.to_string(),
         rpc: f.rpc.to_string(),
         code: f.code as i32 as u32,
@@ -106,7 +102,7 @@ fn to_wire_frame(f: &Frame) -> raw::Frame {
             .location
             .map(|l| format!("{}:{}", l.file(), l.line()))
             .unwrap_or_default(),
-        category: to_proto(f.category) as i32,
+        category: u8::from(f.category),
     }
 }
 
@@ -114,6 +110,7 @@ fn to_wire_frame(f: &Frame) -> raw::Frame {
 mod tests {
     use super::*;
     use crate::test_support::Boom;
+    use crate::wire::envelope::WireEnvelope;
     use tonic::Code;
 
     #[test]
@@ -157,7 +154,8 @@ mod tests {
                 max_frames: 8,
             },
         );
-        let env = raw::Envelope::decode(st.details()).unwrap();
+        let (env, _): (WireEnvelope, _) =
+            bincode::decode_from_slice(st.details(), bincode::config::standard()).unwrap();
         assert_eq!(env.frames.len(), 8);
         assert!(env.frames.iter().any(|f| f.rpc == "elided"));
     }
@@ -179,7 +177,8 @@ mod tests {
                 max_frames: 16,
             },
         );
-        let env = raw::Envelope::decode(st.details()).unwrap();
+        let (env, _): (WireEnvelope, _) =
+            bincode::decode_from_slice(st.details(), bincode::config::standard()).unwrap();
         assert!(env.frames.is_empty());
     }
 }
