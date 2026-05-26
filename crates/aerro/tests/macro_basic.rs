@@ -4,7 +4,7 @@
 #![cfg(feature = "macro")]
 
 use aerro::wire::encode::EncodeOptions;
-use aerro::{Aerro, Category, Exposure, IntoStatus, ServiceFailure, StatusIntoResultExt};
+use aerro::{Aerro, AerroEncode, Category, Exposure, ServiceFailure};
 use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
@@ -85,8 +85,8 @@ fn struct_variant_roundtrips_via_wire() {
     let st = CreateUser::EmailTaken {
         email: "alice@x".into(),
     }
-    .into_status(&EncodeOptions::default());
-    let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
+    .encode(&EncodeOptions::default());
+    let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     match sf.into_inner() {
         CreateUser::EmailTaken { email } => assert_eq!(email, "alice@x"),
         _ => panic!("wrong variant"),
@@ -95,8 +95,9 @@ fn struct_variant_roundtrips_via_wire() {
 
 #[test]
 fn tuple_variant_roundtrips_via_wire() {
-    let st = CreateUser::InvalidName("bob".into()).into_status(&EncodeOptions::default());
-    let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
+    let st =
+        CreateUser::InvalidName("bob".into()).encode(&EncodeOptions::default());
+    let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     match sf.into_inner() {
         CreateUser::InvalidName(s) => assert_eq!(s, "bob"),
         _ => panic!("wrong variant"),
@@ -105,7 +106,7 @@ fn tuple_variant_roundtrips_via_wire() {
 
 #[test]
 fn unit_variant_roundtrips_via_wire() {
-    let st = CreateUser::Boom.into_status(&EncodeOptions::default());
-    let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
+    let st = CreateUser::Boom.encode(&EncodeOptions::default());
+    let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     assert!(matches!(sf.inner(), CreateUser::Boom));
 }

@@ -2,10 +2,10 @@
 //! ships to its audience.
 
 use aerro::wire::encode::EncodeOptions;
-use aerro::{Exposure, IntoStatus};
+use aerro::{AerroEncode, Exposure};
 
 #[derive(Debug, aerro::Aerro)]
-pub enum Db {
+pub enum DbError {
     #[aerro(
         code = System::Internal,
         error = "db.unreachable: {host}"
@@ -14,10 +14,10 @@ pub enum Db {
 }
 
 fn show(label: &str, exposure: Exposure) {
-    let err = Db::Unreachable {
+    let err = DbError::Unreachable {
         host: "prod-shard-42.internal".into(),
     };
-    let st = err.into_status(&EncodeOptions {
+    let st = err.encode(&EncodeOptions {
         exposure,
         max_frames: 16,
     });

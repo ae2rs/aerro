@@ -10,7 +10,7 @@ fn main() {
 #[cfg(feature = "macro")]
 use aerro::wire::encode::EncodeOptions;
 #[cfg(feature = "macro")]
-use aerro::{IntoStatus, StatusIntoResultExt};
+use aerro::{AerroEncode, ServiceFailure};
 #[cfg(feature = "macro")]
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
@@ -32,7 +32,7 @@ fn bench_encode(c: &mut Criterion) {
                 x: 42,
                 y: "hello-world".into(),
             };
-            black_box(v.into_status(black_box(&opts)));
+            black_box(v.encode(black_box(&opts)));
         });
     });
 
@@ -47,7 +47,7 @@ fn bench_decode(c: &mut Criterion) {
         x: 42,
         y: "hello-world".into(),
     }
-    .into_status(&opts);
+    .encode(&opts);
 
     group.bench_function("aerro_bincode", |b| {
         b.iter(|| {
@@ -56,7 +56,7 @@ fn bench_decode(c: &mut Criterion) {
                 encoded_status.message(),
                 bytes::Bytes::copy_from_slice(encoded_status.details()),
             );
-            black_box(st.into_aerro::<Bench>().unwrap());
+            black_box(ServiceFailure::<Bench>::try_from(st).unwrap());
         });
     });
 

@@ -4,8 +4,8 @@
 
 #![cfg(feature = "macro")]
 
-use aerro::IntoStatus;
 use aerro::wire::encode::EncodeOptions;
+use aerro::{AerroEncode, Exposure};
 use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
@@ -19,8 +19,8 @@ pub enum Api {
 
 #[test]
 fn bare_tonic_consumer_sees_correct_code_and_message_internal() {
-    let st = Api::NotFound.into_status(&EncodeOptions {
-        exposure: aerro::Exposure::Internal,
+    let st = Api::NotFound.encode(&EncodeOptions {
+        exposure: Exposure::Internal,
         max_frames: 16,
     });
     // A consumer that knows nothing about aerro only inspects code + message.
@@ -30,8 +30,8 @@ fn bare_tonic_consumer_sees_correct_code_and_message_internal() {
 
 #[test]
 fn bare_tonic_consumer_sees_redacted_message_at_public_for_system() {
-    let st = Api::Boom.into_status(&EncodeOptions {
-        exposure: aerro::Exposure::Public,
+    let st = Api::Boom.encode(&EncodeOptions {
+        exposure: Exposure::Public,
         max_frames: 16,
     });
     assert_eq!(st.code(), Code::Internal);
@@ -40,7 +40,7 @@ fn bare_tonic_consumer_sees_redacted_message_at_public_for_system() {
 
 #[test]
 fn details_bytes_are_additive_not_required() {
-    let st = Api::NotFound.into_status(&EncodeOptions::default());
+    let st = Api::NotFound.encode(&EncodeOptions::default());
     // The details() carry the aerro envelope, but the consumer is free to
     // ignore them — code + message alone are well-defined.
     assert!(!st.details().is_empty());
