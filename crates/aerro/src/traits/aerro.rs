@@ -2,7 +2,10 @@
 
 use tonic::Code;
 
-use crate::{Category, Exposure, error::{DecodeError, EncodeError}};
+use crate::{
+    Category, Exposure,
+    error::{DecodeError, EncodeError},
+};
 
 /// Universal trait implemented by every typed error.
 ///

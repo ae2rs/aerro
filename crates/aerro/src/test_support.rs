@@ -26,7 +26,11 @@ impl Aerro for Boom {
         Code::Internal
     }
 
-    fn encode_payload(&self, _route: Exposure, buf: &mut Vec<u8>) -> Result<(), crate::EncodeError> {
+    fn encode_payload(
+        &self,
+        _route: Exposure,
+        buf: &mut Vec<u8>,
+    ) -> Result<(), crate::EncodeError> {
         let bytes = bincode::encode_to_vec(self, bincode::config::standard())
             .map_err(|e| crate::EncodeError(e.to_string()))?;
         buf.extend_from_slice(&bytes);
