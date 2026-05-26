@@ -76,6 +76,7 @@ pub enum FieldRole {
     Plain,
     Source,
     From,
+    Forward,
 }
 
 #[derive(Debug, Clone)]
@@ -173,13 +174,17 @@ fn collect_field_cfg(field: &Field) -> syn::Result<FieldCfg> {
         } else if attr.path().is_ident("from") {
             role = FieldRole::From;
         } else if attr.path().is_ident("aerro") {
-            // field-level `#[aerro(redact)]`
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("redact") {
                     redact = true;
                     Ok(())
+                } else if meta.path.is_ident("forward") {
+                    role = FieldRole::Forward;
+                    Ok(())
                 } else {
-                    Err(meta.error("field-level aerro attribute only supports `redact`"))
+                    Err(meta.error(
+                        "field-level aerro attribute only supports `redact` and `forward`",
+                    ))
                 }
             })?;
         }
@@ -323,6 +328,25 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
         .into_iter()
         .map(collect_field_cfg)
         .collect::<syn::Result<Vec<_>>>()?;
+
+    let forward_count = fields
+        .iter()
+        .filter(|f| matches!(f.role, FieldRole::Forward))
+        .count();
+    if forward_count > 0 {
+        if fields.len() != 1 {
+            return Err(syn::Error::new_spanned(
+                v,
+                "`#[aerro(forward)]` variants must contain exactly one field",
+            ));
+        }
+        if parsed.from_catchall {
+            return Err(syn::Error::new_spanned(
+                v,
+                "`#[aerro(forward)]` cannot be combined with `from`",
+            ));
+        }
+    }
 
     if let Some(ref fmt) = parsed.error {
         validate_error_fmt(fmt, is_tuple, &fields, v.span())?;
