@@ -50,6 +50,6 @@ mod tests {
     fn status_into_aerro_recovers() {
         let st = Boom { x: 2 }.into_status(&EncodeOptions::default());
         let sf = st.into_aerro::<Boom>().unwrap();
-        assert_eq!(sf.inner.x, 2);
+        assert_eq!(sf.inner().x, 2);
     }
 }

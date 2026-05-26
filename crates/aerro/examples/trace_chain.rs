@@ -24,7 +24,7 @@ fn middleware() -> Result<(), tonic::Status> {
         Ok(v) => Ok(v),
         Err(e) => {
             let mut sf: ServiceFailure<Pipeline> = e.into();
-            sf.frames.push(Frame::local(
+            sf.frames_mut().push(Frame::local(
                 "backend",
                 "ping",
                 Code::Internal,
@@ -42,7 +42,7 @@ fn gateway() -> Result<(), tonic::Status> {
         Ok(v) => Ok(v),
         Err(st) => {
             let mut sf = st.into_aerro::<Pipeline>().expect("typed");
-            sf.frames.push(Frame::local(
+            sf.frames_mut().push(Frame::local(
                 "middleware",
                 "forward",
                 Code::Internal,
@@ -58,7 +58,7 @@ fn main() {
     let st = gateway().unwrap_err();
     let sf = st.into_aerro::<Pipeline>().expect("typed at gateway");
     let mut sf = sf;
-    sf.frames.push(Frame::local(
+    sf.frames_mut().push(Frame::local(
         "gateway",
         "handle",
         Code::Internal,
@@ -66,11 +66,11 @@ fn main() {
         Category::System,
     ));
     println!("frames on final hop:");
-    for (i, f) in sf.frames.iter().enumerate() {
+    for (i, f) in sf.frames().iter().enumerate() {
         println!(
             "  {i}: service={} rpc={} code={:?} msg={}",
             f.service, f.rpc, f.code, f.message
         );
     }
-    println!("trace_id={:02x?}", sf.trace.trace_id);
+    println!("trace_id={:02x?}", sf.trace().trace_id);
 }
