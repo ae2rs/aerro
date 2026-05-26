@@ -10,10 +10,10 @@ use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
 pub enum Api {
-    #[aerro(category = Business, code = NotFound, error = "user not found")]
+    #[aerro(code = Business::NotFound, error = "user not found")]
     NotFound,
 
-    #[aerro(category = System, code = Internal, error = "internal crash")]
+    #[aerro(code = System::Internal, error = "internal crash")]
     Boom,
 }
 

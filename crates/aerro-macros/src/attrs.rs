@@ -135,13 +135,16 @@ fn parse_variant_attr(attr: &Attribute) -> syn::Result<ParsedVariantAttr> {
             .ok_or_else(|| meta.error("expected an identifier"))?
             .to_string();
         match key.as_str() {
-            "category" => {
-                let value: Ident = meta.value()?.parse()?;
-                out.category = Some(value);
-            }
             "code" => {
-                let value: Ident = meta.value()?.parse()?;
-                out.code = Some(value);
+                let path: syn::Path = meta.value()?.parse()?;
+                let segs: Vec<_> = path.segments.iter().collect();
+                if segs.len() != 2 {
+                    return Err(meta.error(
+                        "`code` must be a two-segment path, e.g. `Business::NotFound` or `System::Internal`",
+                    ));
+                }
+                out.category = Some(segs[0].ident.clone());
+                out.code = Some(segs[1].ident.clone());
             }
             "exposure" => {
                 let value: Ident = meta.value()?.parse()?;
@@ -280,7 +283,7 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
         return Err(syn::Error::new_spanned(
             v,
             format!(
-                "variant `{}` is missing `#[aerro(category = Business, code = AlreadyExists)]`",
+                "variant `{}` is missing `#[aerro(code = Business::AlreadyExists)]`",
                 v.ident
             ),
         ));
@@ -296,7 +299,7 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
     let category_ident = parsed.category.ok_or_else(|| {
         syn::Error::new_spanned(
             v,
-            "missing `category = Business` (one of: Business, System, Validation, Transport)",
+            "missing `code = Business::NotFound` (two-segment path: Category::GrpcCode)",
         )
     })?;
     let category = CategoryAttr::from_ident(&category_ident)?;
@@ -304,7 +307,7 @@ pub fn parse_variant(v: &Variant) -> syn::Result<VariantCfg> {
     let code_ident = parsed.code.ok_or_else(|| {
         syn::Error::new_spanned(
             v,
-            "missing `code = AlreadyExists` (PascalCase tonic::Code variant name)",
+            "missing `code = Business::NotFound` (two-segment path: Category::GrpcCode)",
         )
     })?;
 

@@ -1,6 +1,6 @@
 #[derive(aerro::Aerro)]
 pub enum Foo {
-    #[aerro(category = Business, code = NotFound, error = "not found")]
+    #[aerro(code = Business::NotFound, error = "not found")]
     NotFound,
 }
 

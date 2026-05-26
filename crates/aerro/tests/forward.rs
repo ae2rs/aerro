@@ -8,13 +8,13 @@ use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
 enum Inner {
-    #[aerro(category = System, code = Internal, error = "inner.fail")]
+    #[aerro(code = System::Internal, error = "inner.fail")]
     Fail,
 }
 
 #[derive(Debug, aerro::Aerro)]
 enum Outer {
-    #[aerro(category = System, code = Internal, error = "outer.wrapped")]
+    #[aerro(code = System::Internal, error = "outer.wrapped")]
     Wrapped(#[aerro(forward)] Inner),
 }
 

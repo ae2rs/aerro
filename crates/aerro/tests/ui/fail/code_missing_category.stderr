@@ -1,0 +1,5 @@
+error: `code` must be a two-segment path, e.g. `Business::NotFound` or `System::Internal`
+ --> tests/ui/fail/code_missing_category.rs:5:13
+  |
+5 |     #[aerro(code = NotFound)]
+  |             ^^^^^^^^^^^^^^^

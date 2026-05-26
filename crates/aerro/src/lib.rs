@@ -13,10 +13,10 @@
 //!
 //! #[derive(Debug, aerro::Aerro)]
 //! pub enum CreateUserError {
-//!     #[aerro(category = Business, code = AlreadyExists, error = "email already taken: {email}")]
+//!     #[aerro(code = Business::AlreadyExists, error = "email already taken: {email}")]
 //!     EmailTaken { email: String },
 //!
-//!     #[aerro(category = System, code = Internal, error = "db.unavailable")]
+//!     #[aerro(code = System::Internal)]
 //!     DbUnavailable,
 //! }
 //!

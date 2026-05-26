@@ -9,7 +9,7 @@ use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
 pub enum Ping {
-    #[aerro(category = Business, code = AlreadyExists, error = "ping")]
+    #[aerro(code = Business::AlreadyExists, error = "ping")]
     Pong,
 }
 

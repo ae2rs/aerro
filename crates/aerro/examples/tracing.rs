@@ -11,7 +11,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Debug, Aerro)]
 pub enum ApiError {
-    #[aerro(category = Business, code = NotFound)]
+    #[aerro(code = Business::NotFound)]
     UserNotFound,
 }
 

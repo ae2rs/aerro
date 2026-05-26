@@ -6,13 +6,12 @@ use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
 #[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
-        category = Business,
-        code = AlreadyExists,
+        code = Business::AlreadyExists,
         error = "email already taken: {email}"
     )]
     EmailTaken { email: String },
 
-    #[aerro(category = System, code = Internal)]
+    #[aerro(code = System::Internal)]
     Boom,
 }
 

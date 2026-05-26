@@ -1,6 +1,6 @@
-error: missing `code = AlreadyExists` (PascalCase tonic::Code variant name)
+error: missing `code = Business::NotFound` (two-segment path: Category::GrpcCode)
  --> tests/ui/fail/missing_code.rs:5:5
   |
-5 | /     #[aerro(category = Business)]
+5 | /     #[aerro(exposure = Internal)]
 6 | |     NoCode,
   | |__________^

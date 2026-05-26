@@ -17,14 +17,14 @@ use tonic::Code;
 /// Innermost service — plain typed errors, no Forward.
 #[derive(Debug, Aerro)]
 pub enum Pipeline {
-    #[aerro(category = System, code = Internal, error = "backend.unreachable")]
+    #[aerro(code = System::Internal, error = "backend.unreachable")]
     Unreachable,
 }
 
 /// Middle service — plain typed errors, no Forward (so Gateway can decode them).
 #[derive(Debug, Aerro)]
 pub enum Relay {
-    #[aerro(category = System, code = Internal)]
+    #[aerro(code = System::Internal)]
     PipelineFailed,
 }
 
@@ -33,7 +33,7 @@ pub enum Relay {
 /// frame chain is preserved.
 #[derive(Debug, Aerro)]
 pub enum Gateway {
-    #[aerro(category = System, code = Internal)]
+    #[aerro(code = System::Internal)]
     RelayFailed(#[aerro(forward)] Relay),
 }
 
