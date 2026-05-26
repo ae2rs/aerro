@@ -33,7 +33,7 @@
 //! | Flag | Default | Description |
 //! |------|---------|-------------|
 //! | `macro` | ✓ | [`Aerro`] derive macro |
-//! | `tracing` | ✓ | Capture OTel trace/span IDs via the `tracing` subscriber |
+//! | `tracing` | ✗ | Capture OTel trace/span IDs via the `tracing` subscriber |
 //! # Key Types
 //!
 //! - [`Aerro`] — the trait every error type implements (derive or manual)

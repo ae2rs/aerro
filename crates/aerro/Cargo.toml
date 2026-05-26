@@ -13,12 +13,12 @@ homepage.workspace = true
 documentation.workspace = true
 
 [features]
-default = ["macro", "tracing"]
+default = ["macro"]
 macro     = ["dep:aerro-macros"]
 tracing   = ["dep:tracing", "dep:tracing-opentelemetry", "dep:opentelemetry"]
 
 [dependencies]
-aerro-macros = { path = "../aerro-macros", version = "0.7.0", optional = true }
+aerro-macros = { path = "../aerro-macros", version = "0.8.0", optional = true }
 tonic   = { workspace = true }
 prost   = { workspace = true }
 bytes   = { workspace = true }
