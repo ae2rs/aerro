@@ -9,6 +9,7 @@
 use smallvec::SmallVec;
 
 use crate::{Aerro, Frame, trace::TraceContext};
+use crate::traits::FromServiceFailure;
 
 #[derive(Debug)]
 pub(crate) struct ServiceFailureInner<E: Aerro> {
@@ -102,6 +103,17 @@ impl<E: Aerro> std::error::Error for ServiceFailure<E> {
 impl<E: Aerro> From<E> for ServiceFailure<E> {
     fn from(e: E) -> Self {
         Self::new(e)
+    }
+}
+
+impl<E: Aerro> ServiceFailure<E> {
+    /// Convert this failure into a `ServiceFailure<O>` by way of a forwarding
+    /// variant on `O` that was declared with `#[aerro(forward)]`.
+    ///
+    /// Frames and trace context are preserved — no manual [`Frame::local`] push
+    /// needed at the forwarding boundary.
+    pub fn forward<O: Aerro + FromServiceFailure<E>>(self) -> ServiceFailure<O> {
+        O::from_failure(self)
     }
 }
 

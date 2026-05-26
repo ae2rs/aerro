@@ -76,7 +76,7 @@ pub mod ext;
 pub mod wire;
 
 pub use ext::{ResultIntoStatusExt, StatusIntoResultExt};
-pub use traits::{IntoStatus, TryFromStatus};
+pub use traits::{FromServiceFailure, IntoStatus, TryFromStatus};
 pub use wire::decode::decode;
 pub use wire::encode::{EncodeOptions, encode};
 

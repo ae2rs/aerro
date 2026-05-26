@@ -1,0 +1,9 @@
+error: `#[aerro(forward)]` variants must contain exactly one field
+ --> tests/ui/fail/forward_multiple_fields.rs:5:5
+  |
+5 | /     #[aerro(category = System, code = Internal)]
+6 | |     Broken(
+7 | |         #[aerro(forward)] String,
+8 | |         String,
+9 | |     ),
+  | |_____^
