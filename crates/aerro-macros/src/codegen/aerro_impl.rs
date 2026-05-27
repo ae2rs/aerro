@@ -207,12 +207,14 @@ fn decode_payload_arm(v: &VariantCfg, type_id: &str) -> TokenStream {
         .iter()
         .filter(|f| matches!(f.role, FieldRole::Plain))
         .collect();
-    let has_source_or_from = v
-        .fields
-        .iter()
-        .any(|f| matches!(f.role, FieldRole::Source | FieldRole::From));
+    let has_opaque_field = v.fields.iter().any(|f| {
+        matches!(
+            f.role,
+            FieldRole::Source | FieldRole::From | FieldRole::Forward
+        )
+    });
 
-    if has_source_or_from {
+    if has_opaque_field {
         // Cannot reconstruct anyhow/eyre error from wire — fall back to RemoteError.
         return quote! {
             #type_id => {

@@ -1,5 +1,5 @@
 error: unknown aerro attribute `nonsense`
- --> tests/ui/fail/unknown_attr.rs:5:51
+ --> tests/ui/fail/unknown_attr.rs:5:40
   |
-5 |     #[aerro(category = Business, code = NotFound, nonsense = "x")]
-  |                                                   ^^^^^^^^
+5 |     #[aerro(code = Business::NotFound, nonsense = "x")]
+  |                                        ^^^^^^^^

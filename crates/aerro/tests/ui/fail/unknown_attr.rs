@@ -2,7 +2,7 @@ use aerro;
 
 #[derive(aerro::Aerro)]
 pub enum E {
-    #[aerro(category = Business, code = NotFound, nonsense = "x")]
+    #[aerro(code = Business::NotFound, nonsense = "x")]
     Bad,
 }
 

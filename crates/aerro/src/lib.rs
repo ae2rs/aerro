@@ -1,31 +1,31 @@
 //! Cross-service gRPC errors for Rust.
 //!
 //! `aerro` gives every error a **typed identity**, a **bounded call trace**, and
-//! a **structured wire encoding**. Derive [`Aerro`] on an error enum, call
-//! [`IntoStatus`] to encode it into a `tonic::Status`, and [`TryFromStatus`]
-//! on the client to recover the original variant — with the full chain of service
+//! a **structured wire encoding**. Derive [`Aerro`] on an error enum, encode it
+//! into a `tonic::Status` via `From`/`Into`, and recover the original variant on
+//! the client side with `TryFrom`/`TryInto` — with the full chain of service
 //! hops attached.
 //!
 //! # Quick Example
 //!
-//! ```rust
-//! use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
+//! ```rust,ignore
+//! use aerro::{Aerro, ServiceFailure};
 //!
 //! #[derive(Debug, aerro::Aerro)]
 //! pub enum CreateUserError {
-//!     #[aerro(category = Business, code = AlreadyExists, error = "email already taken: {email}")]
+//!     #[aerro(code = Business::AlreadyExists, error = "email already taken: {email}")]
 //!     EmailTaken { email: String },
 //!
-//!     #[aerro(category = System, code = Internal, error = "db.unavailable")]
+//!     #[aerro(code = System::Internal)]
 //!     DbUnavailable,
 //! }
 //!
 //! // Server side
 //! let err = CreateUserError::EmailTaken { email: "alice@example.com".into() };
-//! let status = err.into_status_default();
+//! let status: tonic::Status = ServiceFailure::from(err).into();
 //!
 //! // Client side — recover the typed variant
-//! let recovered = status.into_aerro::<CreateUserError>().unwrap();
+//! let recovered = ServiceFailure::<CreateUserError>::try_from(status).unwrap();
 //! ```
 //!
 //! # Feature Flags
@@ -72,11 +72,12 @@ pub use traits::Aerro;
 #[cfg(feature = "macro")]
 pub use aerro_macros::Aerro;
 
+pub mod convert;
 pub mod ext;
 pub mod wire;
 
-pub use ext::{ResultIntoStatusExt, StatusIntoResultExt};
-pub use traits::{IntoStatus, TryFromStatus};
+pub use convert::AerroEncode;
+pub use traits::FromServiceFailure;
 pub use wire::decode::decode;
 pub use wire::encode::{EncodeOptions, encode};
 

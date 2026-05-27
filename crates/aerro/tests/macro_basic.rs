@@ -3,27 +3,24 @@
 
 #![cfg(feature = "macro")]
 
-use aerro::wire::encode::EncodeOptions;
-use aerro::{Aerro, Category, Exposure, IntoStatus, ServiceFailure, StatusIntoResultExt};
+use aerro::{Aerro, AerroEncode, Category, Exposure, ServiceFailure};
 use tonic::Code;
 
 #[derive(Debug, aerro::Aerro)]
 pub enum CreateUser {
     #[aerro(
-        category = Business,
-        code = AlreadyExists,
+        code = Business::AlreadyExists,
         error = "email already taken: {email}"
     )]
     EmailTaken { email: String },
 
     #[aerro(
-        category = Validation,
-        code = InvalidArgument,
+        code = Validation::InvalidArgument,
         error = "invalid name: {0}"
     )]
     InvalidName(String),
 
-    #[aerro(category = System, code = Internal, error = "create_user.boom")]
+    #[aerro(code = System::Internal, error = "create_user.boom")]
     Boom,
 }
 
@@ -87,8 +84,8 @@ fn struct_variant_roundtrips_via_wire() {
     let st = CreateUser::EmailTaken {
         email: "alice@x".into(),
     }
-    .into_status(&EncodeOptions::default());
-    let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
+    .encode();
+    let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     match sf.into_inner() {
         CreateUser::EmailTaken { email } => assert_eq!(email, "alice@x"),
         _ => panic!("wrong variant"),
@@ -97,8 +94,8 @@ fn struct_variant_roundtrips_via_wire() {
 
 #[test]
 fn tuple_variant_roundtrips_via_wire() {
-    let st = CreateUser::InvalidName("bob".into()).into_status(&EncodeOptions::default());
-    let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
+    let st = CreateUser::InvalidName("bob".into()).encode();
+    let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     match sf.into_inner() {
         CreateUser::InvalidName(s) => assert_eq!(s, "bob"),
         _ => panic!("wrong variant"),
@@ -107,7 +104,7 @@ fn tuple_variant_roundtrips_via_wire() {
 
 #[test]
 fn unit_variant_roundtrips_via_wire() {
-    let st = CreateUser::Boom.into_status(&EncodeOptions::default());
-    let sf: ServiceFailure<CreateUser> = st.into_aerro::<CreateUser>().unwrap();
+    let st = CreateUser::Boom.encode();
+    let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     assert!(matches!(sf.inner(), CreateUser::Boom));
 }

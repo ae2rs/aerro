@@ -1,27 +1,25 @@
 //! One enum, one round-trip across the wire — the simplest possible aerro usage.
 
-use aerro::wire::encode::EncodeOptions;
-use aerro::{Aerro, IntoStatus, StatusIntoResultExt};
+use aerro::{Aerro, AerroEncode, ServiceFailure};
 
 #[derive(Debug, aerro::Aerro)]
-pub enum CreateUser {
+pub enum CreateUserError {
     #[aerro(
-        category = Business,
-        code = AlreadyExists,
+        code = Business::AlreadyExists,
         error = "email already taken: {email}"
     )]
     EmailTaken { email: String },
 
-    #[aerro(category = System, code = Internal, error = "create_user.boom")]
+    #[aerro(code = System::Internal)]
     Boom,
 }
 
 fn main() {
     // Server side: a typed failure (explicit options).
-    let err = CreateUser::EmailTaken {
+    let err = CreateUserError::EmailTaken {
         email: "alice@example.com".into(),
     };
-    let status = err.into_status(&EncodeOptions::default());
+    let status = err.encode();
     println!(
         "server emitted: code={:?} message={:?}",
         status.code(),
@@ -29,9 +27,9 @@ fn main() {
     );
     println!("details() length: {} bytes", status.details().len());
 
-    // Server side: same thing with the convenience shorthand.
-    let err2 = CreateUser::Boom;
-    let status2 = err2.into_status_default();
+    // Server side: same thing with default options.
+    let err2 = CreateUserError::Boom;
+    let status2 = err2.encode();
     println!(
         "server emitted (default): code={:?} message={:?}",
         status2.code(),
@@ -39,11 +37,14 @@ fn main() {
     );
 
     // Client side: recover the typed variant.
-    let recovered = status.into_aerro::<CreateUser>().unwrap();
+    let recovered = ServiceFailure::<CreateUserError>::try_from(status).unwrap();
     match recovered.into_inner() {
-        CreateUser::EmailTaken { email } => println!("client recovered: email={email}"),
-        CreateUser::Boom => unreachable!(),
+        CreateUserError::EmailTaken { email } => println!("client recovered: email={email}"),
+        CreateUserError::Boom => unreachable!(),
     }
 
-    println!("type_ids known to CreateUser: {:?}", CreateUser::TYPE_IDS);
+    println!(
+        "type_ids known to CreateUserError: {:?}",
+        CreateUserError::TYPE_IDS
+    );
 }

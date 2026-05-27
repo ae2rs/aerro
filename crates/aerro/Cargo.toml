@@ -36,6 +36,9 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 dhat = { workspace = true }
 criterion = { workspace = true }
 trybuild = { workspace = true }
+opentelemetry_sdk = { version = "0.26", features = ["trace"] }
+opentelemetry-stdout = { version = "0.26" }
+tracing-subscriber = { version = "0.3", features = ["registry"] }
 
 [[bench]]
 name = "error_path"
@@ -52,4 +55,8 @@ required-features = ["macro"]
 [[example]]
 name = "exposure"
 required-features = ["macro"]
+
+[[example]]
+name = "tracing"
+required-features = ["macro", "tracing"]
 

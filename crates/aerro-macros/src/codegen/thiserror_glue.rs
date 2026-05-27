@@ -13,6 +13,10 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
     let source_arms = cfg.variants.iter().map(source_arm);
 
     let from_impls = cfg.variants.iter().filter_map(|v| from_impl(enum_ident, v));
+    let forward_impls = cfg
+        .variants
+        .iter()
+        .filter_map(|v| forward_impl(enum_ident, v));
 
     quote! {
         impl ::core::fmt::Display for #enum_ident {
@@ -32,6 +36,7 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
         }
 
         #(#from_impls)*
+        #(#forward_impls)*
     }
 }
 
@@ -52,25 +57,40 @@ fn display_arm(enum_ident: &Ident, v: &VariantCfg) -> TokenStream {
     }
 
     if v.is_tuple {
+        // Bind Plain fields for positional format args; use _ for Source/From/Forward
+        // so they don't become stray unused arguments in write!().
         let pat_idents: Vec<Ident> = v
             .fields
             .iter()
             .enumerate()
-            .map(|(i, _)| format_ident!("__f{}", i))
+            .map(|(i, f)| {
+                if matches!(f.role, FieldRole::Plain) {
+                    format_ident!("__f{}", i)
+                } else {
+                    format_ident!("_")
+                }
+            })
+            .collect();
+        let plain_idents: Vec<Ident> = v
+            .fields
+            .iter()
+            .enumerate()
+            .filter_map(|(i, f)| {
+                if matches!(f.role, FieldRole::Plain) {
+                    Some(format_ident!("__f{}", i))
+                } else {
+                    None
+                }
+            })
             .collect();
         let pat = quote! { ( #(#pat_idents),* ) };
         if has_explicit_fmt {
             quote! {
-                Self::#variant #pat => ::core::write!(__f, #fmt_string, #(#pat_idents),*),
+                Self::#variant #pat => ::core::write!(__f, #fmt_string, #(#plain_idents),*),
             }
         } else {
-            // Default snake_case name — fields go unused.
-            let _suppress = pat_idents.iter().map(|i| quote! { let _ = #i; });
             quote! {
-                Self::#variant #pat => {
-                    #(#_suppress)*
-                    ::core::write!(__f, #fmt_string)
-                }
+                Self::#variant #pat => ::core::write!(__f, #fmt_string),
             }
         }
     } else {
@@ -95,10 +115,12 @@ fn source_arm(v: &VariantCfg) -> TokenStream {
         return quote! { Self::#variant => ::core::option::Option::None, };
     }
 
-    let src_idx = v
-        .fields
-        .iter()
-        .position(|f| matches!(f.role, FieldRole::Source | FieldRole::From));
+    let src_idx = v.fields.iter().position(|f| {
+        matches!(
+            f.role,
+            FieldRole::Source | FieldRole::From | FieldRole::Forward
+        )
+    });
 
     if let Some(idx) = src_idx {
         if v.is_tuple {
@@ -165,6 +187,32 @@ fn from_impl(enum_ident: &Ident, v: &VariantCfg) -> Option<TokenStream> {
         impl ::core::convert::From<#ty> for #enum_ident {
             fn from(__from: #ty) -> Self {
                 #ctor
+            }
+        }
+    })
+}
+
+fn forward_impl(enum_ident: &Ident, v: &VariantCfg) -> Option<TokenStream> {
+    let forward_field = v.fields.iter().find(|f| f.role == FieldRole::Forward)?;
+    let variant = &v.ident;
+    let ty = &forward_field.ty;
+
+    let ctor = if v.is_tuple {
+        quote! { #enum_ident::#variant(__inner) }
+    } else if let Some(name) = &forward_field.ident {
+        quote! { #enum_ident::#variant { #name: __inner } }
+    } else {
+        return None;
+    };
+
+    // Implement the local trait on the local enum type — avoids the orphan rule
+    // that prevents `impl From<ServiceFailure<T>> for ServiceFailure<Outer>` in
+    // downstream crates. Use `sf.forward::<Outer>()` to perform the conversion.
+    Some(quote! {
+        impl ::aerro::FromServiceFailure<#ty> for #enum_ident {
+            fn from_failure(__sf: ::aerro::ServiceFailure<#ty>) -> ::aerro::ServiceFailure<Self> {
+                let (__inner, __frames, __trace) = __sf.into_parts();
+                ::aerro::ServiceFailure::from_parts(#ctor, __frames, __trace)
             }
         }
     })

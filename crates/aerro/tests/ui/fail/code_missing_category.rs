@@ -2,7 +2,7 @@ use aerro;
 
 #[derive(aerro::Aerro)]
 pub enum E {
-    #[aerro(code = System::Internal, exposure = Public)]
+    #[aerro(code = NotFound)]
     Bad,
 }
 
