@@ -13,7 +13,10 @@ pub fn emit_display_and_error(cfg: &EnumCfg) -> TokenStream {
     let source_arms = cfg.variants.iter().map(source_arm);
 
     let from_impls = cfg.variants.iter().filter_map(|v| from_impl(enum_ident, v));
-    let forward_impls = cfg.variants.iter().filter_map(|v| forward_impl(enum_ident, v));
+    let forward_impls = cfg
+        .variants
+        .iter()
+        .filter_map(|v| forward_impl(enum_ident, v));
 
     quote! {
         impl ::core::fmt::Display for #enum_ident {
@@ -112,10 +115,12 @@ fn source_arm(v: &VariantCfg) -> TokenStream {
         return quote! { Self::#variant => ::core::option::Option::None, };
     }
 
-    let src_idx = v
-        .fields
-        .iter()
-        .position(|f| matches!(f.role, FieldRole::Source | FieldRole::From | FieldRole::Forward));
+    let src_idx = v.fields.iter().position(|f| {
+        matches!(
+            f.role,
+            FieldRole::Source | FieldRole::From | FieldRole::Forward
+        )
+    });
 
     if let Some(idx) = src_idx {
         if v.is_tuple {

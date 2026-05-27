@@ -8,8 +8,8 @@
 
 use smallvec::SmallVec;
 
-use crate::{Aerro, Frame, trace::TraceContext};
 use crate::traits::FromServiceFailure;
+use crate::{Aerro, Frame, trace::TraceContext};
 
 #[derive(Debug)]
 pub(crate) struct ServiceFailureInner<E: Aerro> {

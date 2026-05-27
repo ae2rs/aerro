@@ -94,8 +94,7 @@ fn struct_variant_roundtrips_via_wire() {
 
 #[test]
 fn tuple_variant_roundtrips_via_wire() {
-    let st =
-        CreateUser::InvalidName("bob".into()).encode();
+    let st = CreateUser::InvalidName("bob".into()).encode();
     let sf: ServiceFailure<CreateUser> = ServiceFailure::try_from(st).unwrap();
     match sf.into_inner() {
         CreateUser::InvalidName(s) => assert_eq!(s, "bob"),

@@ -48,10 +48,18 @@ fn empty_frames_transfer_cleanly() {
 fn multiple_frames_all_transfer() {
     let mut sf_inner: ServiceFailure<Inner> = Inner::Fail.into();
     sf_inner.frames_mut().push(Frame::local(
-        "svc-a", "rpc-a", Code::Internal, "first", Category::System,
+        "svc-a",
+        "rpc-a",
+        Code::Internal,
+        "first",
+        Category::System,
     ));
     sf_inner.frames_mut().push(Frame::local(
-        "svc-b", "rpc-b", Code::Internal, "second", Category::System,
+        "svc-b",
+        "rpc-b",
+        Code::Internal,
+        "second",
+        Category::System,
     ));
 
     let sf_outer: ServiceFailure<Outer> = sf_inner.forward();

@@ -185,9 +185,8 @@ fn collect_field_cfg(field: &Field) -> syn::Result<FieldCfg> {
                     role = FieldRole::Forward;
                     Ok(())
                 } else {
-                    Err(meta.error(
-                        "field-level aerro attribute only supports `redact` and `forward`",
-                    ))
+                    Err(meta
+                        .error("field-level aerro attribute only supports `redact` and `forward`"))
                 }
             })?;
         }

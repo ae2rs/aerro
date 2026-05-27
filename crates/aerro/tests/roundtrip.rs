@@ -77,7 +77,9 @@ fn public_drops_frames_internal_keeps_them() {
         Category::System,
     ));
 
-    let st_pub = sf.clone_for_test().encode_with_opts(&opts(Exposure::Public));
+    let st_pub = sf
+        .clone_for_test()
+        .encode_with_opts(&opts(Exposure::Public));
     let pub_decoded = ServiceFailure::<Suite>::try_from(st_pub).unwrap();
     assert!(pub_decoded.frames().is_empty(), "Public must drop frames");
 
